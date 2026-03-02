@@ -1,0 +1,257 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTop h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.total {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+/* Period selector */
+.periodSelector {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.periodBtn {
+  flex: 1;
+  padding: var(--space-xs) var(--space-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.periodBtn:hover {
+  color: var(--text-primary);
+}
+
+.periodBtnActive {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Navigation */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.navBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.navLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.filterSelect {
+  flex: 1;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Day group */
+.dayGroup {
+  background: var(--bg-card);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--card-gap);
+}
+
+.dayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) 0;
+  margin-bottom: var(--space-xs);
+}
+
+.dayDate {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.dayTotal {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  padding: var(--space-sm) 0;
+  background: none;
+  border-radius: 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border-color);
+  gap: var(--space-sm);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.entry:last-child {
+  border-bottom: none;
+}
+
+.entry:hover {
+  background: var(--bg-hover);
+}
+
+.entry:active {
+  transform: scale(0.99);
+}
+
+.entryDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.entryInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.entryProject {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.entryClient {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.entryDescription {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entryDuration {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Entry actions */
+.entryActions {
+  display: flex;
+  gap: var(--space-xs);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.entry:hover .entryActions {
+  opacity: 1;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.actionBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.actionBtnDanger:hover {
+  color: var(--danger-color);
+}
+
+/* Add button */
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  transition: all 0.15s;
+  margin-bottom: var(--space-sm);
+}
+
+.addButton:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background: var(--bg-secondary);
+}
+
+/* Today button */
+.todayBtn {
+  margin-left: auto;
+  background: var(--bg-secondary);
+  color: var(--accent-color);
+  font-weight: 600;
+}

@@ -1,0 +1,141 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.header h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.periodSelect {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Summary cards */
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--card-gap);
+  margin-bottom: var(--space-lg);
+}
+
+.card {
+  padding: var(--space-md);
+  background: var(--bg-card);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--radius-lg);
+}
+
+.cardLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.cardValue {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.cardAccent {
+  color: var(--accent-color);
+}
+
+.cardSuccess {
+  color: var(--success-color);
+}
+
+/* Client breakdown */
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: var(--space-sm);
+}
+
+.clientBlock {
+  background: var(--bg-card);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--card-gap);
+}
+
+.clientRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+}
+
+.clientDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.clientName {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.clientHours {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.clientRevenue {
+  font-size: var(--font-size-xs);
+  color: var(--success-color);
+  font-weight: 500;
+  margin-left: var(--space-sm);
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Bar chart */
+.bar {
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: var(--space-xs);
+}
+
+.barFill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: width 0.3s ease;
+}
+
+/* Project row */
+.projectRow {
+  display: flex;
+  align-items: center;
+  padding: var(--space-xs) 0 var(--space-xs) var(--space-lg);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.projectName {
+  flex: 1;
+}
+
+.projectHours {
+  font-weight: 500;
+}

@@ -1,0 +1,106 @@
+/* CSS Variables — macOS-native aesthetic */
+:root {
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  /* Card gap */
+  --card-gap: 8px;
+
+  /* ── Light mode ─────────────────────────────── */
+
+  /* Shell: grey-tinted, slightly opaque — vibrancy shows through */
+  --bg-primary: rgba(244, 244, 246, 0.85);
+
+  /* Cards: white glass — pops above the grey shell */
+  --bg-card: rgba(255, 255, 255, 0.90);
+  --card-border: 1px solid rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  /* Controls: neutral overlays for tracks, inputs */
+  --bg-secondary: rgba(0, 0, 0, 0.05);
+  --bg-tertiary: rgba(0, 0, 0, 0.04);
+  --bg-hover: rgba(0, 0, 0, 0.06);
+  --bg-active: rgba(0, 0, 0, 0.09);
+
+  /* Text */
+  --text-primary: rgba(0, 0, 0, 0.85);
+  --text-secondary: rgba(0, 0, 0, 0.50);
+  --text-tertiary: rgba(0, 0, 0, 0.30);
+
+  /* Borders */
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-color-strong: rgba(0, 0, 0, 0.15);
+
+  /* Accents */
+  --accent-color: #007AFF;
+  --accent-hover: #0066D6;
+  --danger-color: #FF3B30;
+  --danger-hover: #D62D23;
+  --success-color: #34C759;
+  --warning-color: #FF9500;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+
+/* ── Dark mode ──────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Shell: rich dark, vibrancy blends through */
+    --bg-primary: rgba(28, 28, 30, 0.85);
+
+    /* Cards: frosted glass — white glow on dark */
+    --bg-card: rgba(255, 255, 255, 0.07);
+    --card-border: 1px solid rgba(255, 255, 255, 0.10);
+    --card-shadow: none;
+
+    /* Controls */
+    --bg-secondary: rgba(255, 255, 255, 0.06);
+    --bg-tertiary: rgba(255, 255, 255, 0.04);
+    --bg-hover: rgba(255, 255, 255, 0.08);
+    --bg-active: rgba(255, 255, 255, 0.14);
+
+    /* Text */
+    --text-primary: rgba(255, 255, 255, 0.90);
+    --text-secondary: rgba(255, 255, 255, 0.55);
+    --text-tertiary: rgba(255, 255, 255, 0.30);
+
+    /* Borders */
+    --border-color: rgba(255, 255, 255, 0.07);
+    --border-color-strong: rgba(255, 255, 255, 0.15);
+
+    /* Accents */
+    --accent-color: #0A84FF;
+    --accent-hover: #409CFF;
+    --danger-color: #FF453A;
+    --danger-hover: #FF6961;
+    --success-color: #30D158;
+    --warning-color: #FFD60A;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.40);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.50);
+  }
+}

@@ -1,0 +1,68 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* Tab Bar */
+.tabBar {
+  display: flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--bg-secondary);
+  margin: 0 var(--space-sm) var(--space-sm);
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-xs) var(--space-sm);
+  border: none;
+  background: none;
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+  transition: color 0.15s, background 0.15s;
+}
+
+.tab:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.tabActive {
+  color: var(--accent-color);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.tabActive:hover {
+  color: var(--accent-color);
+}
+
+.tabIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.tabLabel {
+  font-weight: 500;
+}
