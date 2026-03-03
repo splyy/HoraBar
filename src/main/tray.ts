@@ -123,7 +123,7 @@ export class TrayManager {
     });
   }
 
-  private toggleWindow(): void {
+  toggleWindow(): void {
     if (this.window.isVisible()) {
       this.hideWindow();
     } else {

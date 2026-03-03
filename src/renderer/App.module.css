@@ -3,53 +3,58 @@
   flex-direction: column;
   height: 100%;
   background: var(--bg-primary);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--radius-xl);
+  border-radius: 12px;
   overflow: hidden;
+  position: relative;
 }
 
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-sm) var(--space-md);
+  overflow-x: hidden;
+  position: relative;
 }
 
-/* Tab Bar */
+/* Tab Bar — bottom, border-top, icon + text */
 .tabBar {
   display: flex;
-  padding: 3px;
-  gap: 2px;
-  background: var(--bg-secondary);
-  margin: 0 var(--space-sm) var(--space-sm);
-  border-radius: var(--radius-lg);
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  padding: 6px 0 8px;
   flex-shrink: 0;
 }
 
-.tab {
+.tabBtn {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-sm);
+  gap: 3px;
+  padding: 4px 0;
   border: none;
-  background: none;
-  border-radius: var(--radius-md);
+  background: transparent;
   color: var(--text-tertiary);
-  transition: color 0.15s, background 0.15s;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.tab:hover {
-  background: var(--bg-hover);
+.tabBtn:hover {
   color: var(--text-secondary);
 }
 
-.tabActive {
+.tabBtnActive {
   color: var(--accent-color);
-  background: var(--bg-primary);
-  box-shadow: var(--shadow-sm);
 }
 
-.tabActive:hover {
-  color: var(--accent-color);
+.tabBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.tabBtn span {
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  letter-spacing: 0.3px;
 }

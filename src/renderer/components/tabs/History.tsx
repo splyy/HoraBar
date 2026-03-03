@@ -2,24 +2,19 @@ import { useMemo, useState } from 'react';
 import { useTrackingByRange } from '../../hooks/useTracking';
 import { useFormatDuration, useFormatDays } from '../../hooks/useFormatDuration';
 import { useClients } from '../../hooks/useClients';
-import { useProjects } from '../../hooks/useProjects';
-import { TimeEntryForm } from '../forms/TimeEntryForm';
+import { TimeEntryModal } from '../forms/TimeEntryModal';
 import { EmptyState } from '../common/EmptyState';
-import { Select } from '../common/Select';
 import { AlertDialog } from '../common/AlertDialog';
 import { Tooltip } from '../common/Tooltip';
-import { IconChevronLeft, IconChevronRight, IconClipboard, IconPencil, IconTrash, IconPlus } from '../common/Icons';
+import { IconChevronLeft, IconChevronRight, IconPencil, IconTrash, IconFabPlus, IconClipboard } from '../common/Icons';
+import { getLocalDate } from '../../../shared/utils/date';
 import type { TrackingEntryWithDetails } from '../../../shared/types';
 import styles from './History.module.css';
 
 type Period = 'day' | 'week' | 'month' | 'year';
 
-function getToday(): string {
-  return new Date().toISOString().split('T')[0];
-}
-
 function getDateRange(date: Date, period: Period): { start: string; end: string } {
-  const fmt = (d: Date) => d.toISOString().split('T')[0];
+  const fmt = (d: Date) => d.toLocaleDateString('en-CA');
 
   switch (period) {
     case 'day':
@@ -27,7 +22,7 @@ function getDateRange(date: Date, period: Period): { start: string; end: string 
     case 'week': {
       const d = new Date(date);
       const day = d.getDay();
-      const diff = day === 0 ? 6 : day - 1; // Monday start
+      const diff = day === 0 ? 6 : day - 1;
       d.setDate(d.getDate() - diff);
       const start = fmt(d);
       d.setDate(d.getDate() + 6);
@@ -63,6 +58,198 @@ function navigateDate(date: Date, period: Period, direction: -1 | 1): Date {
   return d;
 }
 
+function formatDayLabel(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+interface DayGroup {
+  date: string;
+  entries: TrackingEntryWithDetails[];
+  totalMinutes: number;
+}
+
+export function History() {
+  const [period, setPeriod] = useState<Period>('week');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [clientFilter, setClientFilter] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TrackingEntryWithDetails | null>(null);
+
+  const { start, end } = getDateRange(currentDate, period);
+  const { entries, loading, create, update, remove } = useTrackingByRange(
+    start,
+    end,
+    clientFilter ?? undefined,
+    undefined,
+  );
+  const { clients } = useClients();
+  const formatDuration = useFormatDuration();
+  const formatDays = useFormatDays();
+
+  const groups = useMemo<DayGroup[]>(() => {
+    const map = new Map<string, DayGroup>();
+    for (const entry of entries) {
+      let group = map.get(entry.date);
+      if (!group) {
+        group = { date: entry.date, entries: [], totalMinutes: 0 };
+        map.set(entry.date, group);
+      }
+      group.entries.push(entry);
+      group.totalMinutes += entry.duration;
+    }
+    return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
+  }, [entries]);
+
+  const handleEdit = (entry: TrackingEntryWithDetails) => {
+    setEditingEntry(entry);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    await remove(id);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setEditingEntry(null);
+  };
+
+  const today = getLocalDate();
+  const isCurrentPeriod = start <= today && end >= today;
+
+  return (
+    <div className={styles.page}>
+      {/* Period tabs + nav */}
+      <div className={styles.top}>
+        <div className={styles.periodTabs}>
+          {(['day', 'week', 'month', 'year'] as Period[]).map((p) => (
+            <button
+              key={p}
+              className={`${styles.periodTab} ${period === p ? styles.periodTabActive : ''}`}
+              onClick={() => setPeriod(p)}
+            >
+              {{ day: 'Jour', week: 'Semaine', month: 'Mois', year: 'Année' }[p]}
+            </button>
+          ))}
+        </div>
+
+        {/* Nav arrows */}
+        <div className={styles.nav}>
+          <button className={styles.navBtn} onClick={() => setCurrentDate(navigateDate(currentDate, period, -1))}>
+            <IconChevronLeft size={14} />
+          </button>
+          <span className={styles.navLabel}>
+            {formatPeriodLabel(currentDate, period)}
+          </span>
+          <button className={styles.navBtn} onClick={() => setCurrentDate(navigateDate(currentDate, period, 1))}>
+            <IconChevronRight size={14} />
+          </button>
+          {!isCurrentPeriod && (
+            <button className={styles.todayBtn} onClick={() => setCurrentDate(new Date())}>
+              Aujourd&apos;hui
+            </button>
+          )}
+        </div>
+
+        {/* Filter chips */}
+        <div className={styles.filterChips}>
+          <button
+            className={`${styles.filterChip} ${clientFilter === null ? styles.filterChipActive : ''}`}
+            onClick={() => setClientFilter(null)}
+          >
+            Tous
+          </button>
+          {clients.map((c) => (
+            <button
+              key={c.id}
+              className={`${styles.filterChip} ${clientFilter === c.id ? styles.filterChipActive : ''}`}
+              onClick={() => setClientFilter(clientFilter === c.id ? null : c.id)}
+            >
+              <span className={styles.dotSm} style={{ backgroundColor: c.color }} />
+              {c.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Entries */}
+      <div className={styles.entries}>
+        {loading ? null : groups.length === 0 ? (
+          <EmptyState icon={<IconClipboard size={32} />} message="Aucune entrée pour cette période" />
+        ) : (
+          groups.map((group) => (
+            <div key={group.date} className={styles.dayGroup}>
+              <div className={styles.dayHeader}>
+                <span className={styles.dayLabel}>{formatDayLabel(group.date)}</span>
+                <div className={styles.dayMeta}>
+                  <span className={styles.badge}>{formatDuration(group.totalMinutes)}</span>
+                  <span className={styles.dayDays}>{formatDays(group.totalMinutes)}</span>
+                </div>
+              </div>
+              {group.entries.map((entry) => (
+                <div key={entry.id} className={styles.entryRow}>
+                  <span className={styles.dot} style={{ backgroundColor: entry.client_color }} />
+                  <div className={styles.entryContent}>
+                    <div className={styles.entryHeader}>
+                      <span className={styles.entryProject}>{entry.project_name}</span>
+                      <span className={styles.entryClient}>{entry.client_name}</span>
+                    </div>
+                    {entry.description && (
+                      <div className={styles.entryDesc}>{entry.description}</div>
+                    )}
+                  </div>
+                  <span className={styles.badge}>{formatDuration(entry.duration)}</span>
+                  <div className={styles.entryActions}>
+                    <Tooltip content="Modifier">
+                      <button className={styles.actionBtn} onClick={() => handleEdit(entry)}>
+                        <IconPencil size={13} />
+                      </button>
+                    </Tooltip>
+                    <AlertDialog
+                      trigger={
+                        <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`}>
+                          <IconTrash size={13} />
+                        </button>
+                      }
+                      title="Supprimer l'entrée"
+                      description="Cette action est irréversible. Voulez-vous vraiment supprimer cette entrée ?"
+                      onConfirm={() => handleDelete(entry.id)}
+                      variant="danger"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* FAB */}
+      <button className={styles.fab} onClick={() => setShowModal(true)} title="Ajouter une entrée">
+        <IconFabPlus size={18} />
+      </button>
+
+      {/* Modal */}
+      {showModal && (
+        <TimeEntryModal
+          date={editingEntry?.date ?? start}
+          entry={editingEntry}
+          onSave={async (input) => {
+            if (editingEntry) {
+              await update(editingEntry.id, input);
+            } else {
+              await create(input);
+            }
+            handleModalClose();
+          }}
+          onClose={handleModalClose}
+        />
+      )}
+    </div>
+  );
+}
+
 function formatPeriodLabel(date: Date, period: Period): string {
   switch (period) {
     case 'day':
@@ -78,206 +265,4 @@ function formatPeriodLabel(date: Date, period: Period): string {
     case 'year':
       return date.getFullYear().toString();
   }
-}
-
-function formatDayLabel(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
-}
-
-interface DayGroup {
-  date: string;
-  entries: TrackingEntryWithDetails[];
-  totalMinutes: number;
-}
-
-export function History() {
-  const [period, setPeriod] = useState<Period>('week');
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [clientFilter, setClientFilter] = useState<number | ''>('');
-  const [projectFilter, setProjectFilter] = useState<number | ''>('');
-  const [showForm, setShowForm] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<TrackingEntryWithDetails | null>(null);
-
-  const { start, end } = getDateRange(currentDate, period);
-  const { entries, loading, create, update, remove } = useTrackingByRange(start, end);
-  const { clients } = useClients();
-  const { projects } = useProjects(clientFilter || undefined);
-  const formatDuration = useFormatDuration();
-  const formatDays = useFormatDays();
-
-  const filtered = useMemo(() => {
-    let result = entries;
-    if (clientFilter) {
-      result = result.filter((e) => e.client_id === clientFilter);
-    }
-    if (projectFilter) {
-      result = result.filter((e) => e.project_id === projectFilter);
-    }
-    return result;
-  }, [entries, clientFilter, projectFilter]);
-
-  const groups = useMemo<DayGroup[]>(() => {
-    const map = new Map<string, DayGroup>();
-    for (const entry of filtered) {
-      let group = map.get(entry.date);
-      if (!group) {
-        group = { date: entry.date, entries: [], totalMinutes: 0 };
-        map.set(entry.date, group);
-      }
-      group.entries.push(entry);
-      group.totalMinutes += entry.duration;
-    }
-    return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
-  }, [filtered]);
-
-  const totalMinutes = filtered.reduce((sum, e) => sum + e.duration, 0);
-
-  const handleEdit = (entry: TrackingEntryWithDetails) => {
-    setEditingEntry(entry);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    await remove(id);
-  };
-
-  const handleFormClose = () => {
-    setShowForm(false);
-    setEditingEntry(null);
-  };
-
-  if (showForm) {
-    return (
-      <TimeEntryForm
-        date={editingEntry?.date ?? start}
-        entry={editingEntry}
-        onSave={async (input) => {
-          if (editingEntry) {
-            await update(editingEntry.id, input);
-          } else {
-            await create(input);
-          }
-          handleFormClose();
-        }}
-        onCancel={handleFormClose}
-      />
-    );
-  }
-
-  const today = getToday();
-  const isCurrentPeriod = start <= today && end >= today;
-
-  return (
-    <div>
-      <div className={styles.header}>
-        <div className={styles.headerTop}>
-          <h2>Historique</h2>
-          <span className={styles.total}>{formatDuration(totalMinutes)} · {formatDays(totalMinutes)}</span>
-        </div>
-
-        <div className={styles.periodSelector}>
-          {(['day', 'week', 'month', 'year'] as Period[]).map((p) => (
-            <button
-              key={p}
-              className={`${styles.periodBtn} ${period === p ? styles.periodBtnActive : ''}`}
-              onClick={() => setPeriod(p)}
-            >
-              {{ day: 'Jour', week: 'Semaine', month: 'Mois', year: 'Année' }[p]}
-            </button>
-          ))}
-        </div>
-
-        <div className={styles.nav}>
-          <button className={styles.navBtn} onClick={() => setCurrentDate(navigateDate(currentDate, period, -1))}>
-            <IconChevronLeft size={16} />
-          </button>
-          <span className={styles.navLabel}>{formatPeriodLabel(currentDate, period)}</span>
-          <button className={styles.navBtn} onClick={() => setCurrentDate(navigateDate(currentDate, period, 1))}>
-            <IconChevronRight size={16} />
-          </button>
-          {!isCurrentPeriod && (
-            <button
-              className={`${styles.periodBtn} ${styles.todayBtn}`}
-              onClick={() => setCurrentDate(new Date())}
-            >
-              Aujourd'hui
-            </button>
-          )}
-        </div>
-
-        <div className={styles.filters}>
-          <Select
-            size="sm"
-            value={clientFilter ? String(clientFilter) : 'all'}
-            onValueChange={(v) => {
-              setClientFilter(v === 'all' ? '' : parseInt(v));
-              setProjectFilter('');
-            }}
-            options={[
-              { value: 'all', label: 'Tous les clients' },
-              ...clients.map((c) => ({ value: String(c.id), label: c.name })),
-            ]}
-          />
-          <Select
-            size="sm"
-            value={projectFilter ? String(projectFilter) : 'all'}
-            onValueChange={(v) => setProjectFilter(v === 'all' ? '' : parseInt(v))}
-            options={[
-              { value: 'all', label: 'Tous les projets' },
-              ...projects.map((p) => ({ value: String(p.id), label: p.name })),
-            ]}
-          />
-        </div>
-      </div>
-
-      <button className={styles.addButton} onClick={() => setShowForm(true)}>
-        <IconPlus size={14} /> Ajouter une entrée
-      </button>
-
-      {loading ? null : groups.length === 0 ? (
-        <EmptyState icon={<IconClipboard size={32} />} message="Aucune entrée pour cette période" />
-      ) : (
-        groups.map((group) => (
-          <div key={group.date} className={styles.dayGroup}>
-            <div className={styles.dayHeader}>
-              <span className={styles.dayDate}>{formatDayLabel(group.date)}</span>
-              <span className={styles.dayTotal}>{formatDuration(group.totalMinutes)} · {formatDays(group.totalMinutes)}</span>
-            </div>
-            {group.entries.map((entry) => (
-              <div key={entry.id} className={styles.entry}>
-                <span className={styles.entryDot} style={{ backgroundColor: entry.client_color }} />
-                <div className={styles.entryInfo}>
-                  <div className={styles.entryProject}>{entry.project_name}</div>
-                  <div className={styles.entryClient}>{entry.client_name}</div>
-                  {entry.description && (
-                    <div className={styles.entryDescription}>{entry.description}</div>
-                  )}
-                </div>
-                <span className={styles.entryDuration}>{formatDuration(entry.duration)}</span>
-                <div className={styles.entryActions}>
-                  <Tooltip content="Modifier">
-                    <button className={styles.actionBtn} onClick={() => handleEdit(entry)}>
-                      <IconPencil size={13} />
-                    </button>
-                  </Tooltip>
-                  <AlertDialog
-                    trigger={
-                      <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`}>
-                        <IconTrash size={13} />
-                      </button>
-                    }
-                    title="Supprimer l'entrée"
-                    description="Cette action est irréversible. Voulez-vous vraiment supprimer cette entrée ?"
-                    onConfirm={() => handleDelete(entry.id)}
-                    variant="danger"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        ))
-      )}
-    </div>
-  );
 }

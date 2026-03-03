@@ -16,17 +16,34 @@ export function listTracking(date: string): TrackingEntryWithDetails[] {
   );
 }
 
-export function listTrackingByRange(startDate: string, endDate: string): TrackingEntryWithDetails[] {
+export function listTrackingByRange(
+  startDate: string,
+  endDate: string,
+  clientId?: number,
+  projectId?: number,
+): TrackingEntryWithDetails[] {
   const db = getDatabase();
+  const conditions = ['te.date >= ?', 'te.date <= ?'];
+  const params: unknown[] = [startDate, endDate];
+
+  if (clientId) {
+    conditions.push('c.id = ?');
+    params.push(clientId);
+  }
+  if (projectId) {
+    conditions.push('te.project_id = ?');
+    params.push(projectId);
+  }
+
   return queryAll<TrackingEntryWithDetails>(
     db,
     `SELECT te.*, p.name as project_name, p.client_id, c.name as client_name, c.color as client_color
      FROM tracking te
      JOIN projects p ON te.project_id = p.id
      JOIN clients c ON p.client_id = c.id
-     WHERE te.date >= ? AND te.date <= ?
+     WHERE ${conditions.join(' AND ')}
      ORDER BY te.date DESC, te.created_at DESC`,
-    [startDate, endDate]
+    params,
   );
 }
 
@@ -71,6 +88,36 @@ export function getTodayTotal(date: string): number {
     [date]
   );
   return result?.total ?? 0;
+}
+
+export function exportTrackingData(
+  startDate: string,
+  endDate: string,
+): { headers: string[]; rows: string[][] } {
+  const db = getDatabase();
+  const entries = queryAll<TrackingEntryWithDetails & { daily_rate: number | null }>(
+    db,
+    `SELECT te.*, p.name as project_name, p.client_id, c.name as client_name, c.color as client_color, c.daily_rate
+     FROM tracking te
+     JOIN projects p ON te.project_id = p.id
+     JOIN clients c ON p.client_id = c.id
+     WHERE te.date >= ? AND te.date <= ?
+     ORDER BY te.date ASC, c.name ASC, p.name ASC`,
+    [startDate, endDate],
+  );
+
+  const headers = ['Date', 'Client', 'Projet', 'Durée (min)', 'Durée (h)', 'TJM', 'Description'];
+  const rows = entries.map((e) => [
+    e.date,
+    e.client_name,
+    e.project_name,
+    String(e.duration),
+    (e.duration / 60).toFixed(2),
+    e.daily_rate != null ? String(e.daily_rate) : '',
+    e.description ?? '',
+  ]);
+
+  return { headers, rows };
 }
 
 export function getStatsByPeriod(

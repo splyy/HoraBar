@@ -1,4 +1,5 @@
-import { ipcMain, shell } from 'electron';
+import { ipcMain, shell, dialog } from 'electron';
+import fs from 'fs';
 // eslint-disable-next-line import/no-unresolved
 import { IPC } from '@/shared/constants/ipc-channels';
 import * as clientsService from '../services/clients';
@@ -54,8 +55,8 @@ export function registerIpcHandlers(): void {
     return trackingService.listTracking(date);
   });
 
-  ipcMain.handle(IPC.TRACKING_LIST_BY_RANGE, (_event, startDate: string, endDate: string) => {
-    return trackingService.listTrackingByRange(startDate, endDate);
+  ipcMain.handle(IPC.TRACKING_LIST_BY_RANGE, (_event, startDate: string, endDate: string, clientId?: number, projectId?: number) => {
+    return trackingService.listTrackingByRange(startDate, endDate, clientId, projectId);
   });
 
   ipcMain.handle(IPC.TRACKING_CREATE, (_event, input) => {
@@ -76,6 +77,36 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IPC.TRACKING_STATS, (_event, startDate: string, endDate: string) => {
     return trackingService.getStatsByPeriod(startDate, endDate);
+  });
+
+  ipcMain.handle(IPC.TRACKING_EXPORT, async (_event, startDate: string, endDate: string) => {
+    const { headers, rows } = trackingService.exportTrackingData(startDate, endDate);
+
+    const escapeCsv = (val: string) => {
+      if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
+
+    const csvLines = [
+      headers.map(escapeCsv).join(','),
+      ...rows.map((row) => row.map(escapeCsv).join(',')),
+    ];
+    const csv = csvLines.join('\n');
+
+    const result = await dialog.showSaveDialog({
+      title: 'Exporter les données',
+      defaultPath: `kronobar-export-${startDate}-${endDate}.csv`,
+      filters: [{ name: 'CSV', extensions: ['csv'] }],
+    });
+
+    if (result.canceled || !result.filePath) {
+      return { success: false };
+    }
+
+    fs.writeFileSync(result.filePath, '\uFEFF' + csv, 'utf-8');
+    return { success: true };
   });
 
   // --- Settings ---

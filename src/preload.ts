@@ -19,12 +19,13 @@ const api: KronoBarAPI = {
   },
   tracking: {
     list: (date) => ipcRenderer.invoke(IPC.TRACKING_LIST, date),
-    listByRange: (start, end) => ipcRenderer.invoke(IPC.TRACKING_LIST_BY_RANGE, start, end),
+    listByRange: (start, end, clientId, projectId) => ipcRenderer.invoke(IPC.TRACKING_LIST_BY_RANGE, start, end, clientId, projectId),
     create: (input) => ipcRenderer.invoke(IPC.TRACKING_CREATE, input),
     update: (id, input) => ipcRenderer.invoke(IPC.TRACKING_UPDATE, id, input),
     delete: (id) => ipcRenderer.invoke(IPC.TRACKING_DELETE, id),
     getTodayTotal: (date) => ipcRenderer.invoke(IPC.TRACKING_TODAY_TOTAL, date),
     getStats: (start, end) => ipcRenderer.invoke(IPC.TRACKING_STATS, start, end),
+    export: (start, end) => ipcRenderer.invoke(IPC.TRACKING_EXPORT, start, end),
   },
   settings: {
     get: (key) => ipcRenderer.invoke(IPC.SETTINGS_GET, key),

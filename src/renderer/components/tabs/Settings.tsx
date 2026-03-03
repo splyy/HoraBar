@@ -2,168 +2,242 @@ import { useState } from 'react';
 import { useSettings } from '../../hooks/useSettings';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
-import { IconPencil, IconArchive, IconUnarchive, IconPlus, IconBug, IconHeart } from '../common/Icons';
+import { useToast } from '../../hooks/useToast';
+import { getCurrencySymbol } from '../../../shared/utils/currency';
+import { getLocalDate } from '../../../shared/utils/date';
+import {
+  IconPencil, IconArchive, IconUnarchive, IconPlus,
+  IconUsers, IconFolder, IconAlertCircle, IconStar,
+  IconChevronRight, IconChevronLeft,
+} from '../common/Icons';
 import { Select } from '../common/Select';
 import { Tooltip } from '../common/Tooltip';
 import type { Client, ClientInput, Project, ProjectInput } from '@/shared/types';
 import styles from './Settings.module.css';
 
 const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316'];
-const CURRENCIES = [
-  { value: 'EUR', label: 'EUR (€)' },
-  { value: 'USD', label: 'USD ($)' },
-  { value: 'GBP', label: 'GBP (£)' },
-];
 
-type SubTab = 'general' | 'clients' | 'projects';
+type SubView = 'main' | 'clients' | 'projects';
 
 export function Settings() {
-  const [subTab, setSubTab] = useState<SubTab>('general');
+  const [subView, setSubView] = useState<SubView>('main');
   const { settings, updateSetting } = useSettings();
   const { clients, create: createClient, update: updateClient, archive: archiveClient, unarchive: unarchiveClient, refresh: refreshClients } = useClients(true);
   const { projects, create: createProject, update: updateProject, archive: archiveProject, unarchive: unarchiveProject } = useProjects(undefined, true);
+  const { showToast } = useToast();
+
+  if (subView === 'clients') {
+    return (
+      <ClientsView
+        clients={clients}
+        currency={settings.currency}
+        onCreate={createClient}
+        onUpdate={updateClient}
+        onArchive={archiveClient}
+        onUnarchive={unarchiveClient}
+        onBack={() => setSubView('main')}
+      />
+    );
+  }
+
+  if (subView === 'projects') {
+    return (
+      <ProjectsView
+        clients={clients.filter((c) => !c.archived_at)}
+        projects={projects}
+        onCreate={async (input) => {
+          await createProject(input);
+          await refreshClients();
+        }}
+        onUpdate={updateProject}
+        onArchive={archiveProject}
+        onUnarchive={unarchiveProject}
+        onBack={() => setSubView('main')}
+      />
+    );
+  }
+
+  const handleExport = async () => {
+    try {
+      const today = getLocalDate();
+      const d = new Date();
+      d.setDate(1);
+      const monthStart = d.toLocaleDateString('en-CA');
+      const result = await window.kronobar.tracking.export(monthStart, today);
+      if (result.success) {
+        showToast('Export CSV réussi');
+      }
+    } catch {
+      showToast("Erreur lors de l'export", 'error');
+    }
+  };
 
   return (
-    <div className={styles.settings}>
-      <h2>Réglages</h2>
+    <div className={styles.scroll}>
+      <div className={styles.header}>Réglages</div>
 
-      <div className={styles.subTabs}>
-        {([
-          { id: 'general', label: 'Général' },
-          { id: 'clients', label: 'Clients' },
-          { id: 'projects', label: 'Projets' },
-        ] as { id: SubTab; label: string }[]).map((tab) => (
-          <button
-            key={tab.id}
-            className={`${styles.subTab} ${subTab === tab.id ? styles.subTabActive : ''}`}
-            onClick={() => setSubTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <div className={styles.section}>
+        {/* TEMPS & CALCUL */}
+        <div className={styles.sectionLabel} style={{ marginTop: 0, paddingTop: 16 }}>
+          Temps &amp; calcul
+        </div>
 
-      {subTab === 'general' && (
-        <GeneralSection settings={settings} updateSetting={updateSetting} />
-      )}
+        <div className={styles.settingRow}>
+          <div>
+            <div className={styles.settingLabel}>Format du temps</div>
+          </div>
+          <div className={styles.segmented}>
+            <button
+              className={`${styles.segmentedBtn} ${settings.time_format === 'hhmm' ? styles.segmentedBtnActive : ''}`}
+              onClick={() => updateSetting('time_format', 'hhmm')}
+            >
+              2h 30m
+            </button>
+            <button
+              className={`${styles.segmentedBtn} ${settings.time_format === 'decimal' ? styles.segmentedBtnActive : ''}`}
+              onClick={() => updateSetting('time_format', 'decimal')}
+            >
+              2.5h
+            </button>
+          </div>
+        </div>
 
-      {subTab === 'clients' && (
-        <ClientsSection
-          clients={clients}
-          onCreate={createClient}
-          onUpdate={updateClient}
-          onArchive={archiveClient}
-          onUnarchive={unarchiveClient}
-        />
-      )}
+        <div className={styles.settingRow}>
+          <div>
+            <div className={styles.settingLabel}>Heures / jour</div>
+            <div className={styles.settingDesc}>Base de calcul des jours</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <input
+              type="number"
+              className={styles.numInput}
+              value={settings.hours_per_day}
+              min={1}
+              max={24}
+              onChange={(e) => updateSetting('hours_per_day', parseInt(e.target.value) || 7)}
+            />
+            <span className={styles.settingUnit}>h</span>
+          </div>
+        </div>
 
-      {subTab === 'projects' && (
-        <ProjectsSection
-          clients={clients.filter((c) => !c.archived_at)}
-          projects={projects}
-          onCreate={async (input) => {
-            await createProject(input);
-            await refreshClients();
-          }}
-          onUpdate={updateProject}
-          onArchive={archiveProject}
-          onUnarchive={unarchiveProject}
-        />
-      )}
+        {/* CLIENTS & PROJETS */}
+        <div className={styles.sectionLabel}>Clients &amp; projets</div>
 
-      <footer className={styles.footer}>
-        <button
-          className={styles.footerLink}
-          onClick={() => window.kronobar.shell.openExternal('https://github.com/splyy/KronoBar/issues')}
-        >
-          <IconBug size={14} />
-          Signaler un bug
+        <button className={styles.settingLink} onClick={() => setSubView('clients')}>
+          <div className={styles.settingLinkIcon} style={{ background: 'var(--accent-soft)' }}>
+            <IconUsers size={16} style={{ color: 'var(--accent-color)' }} />
+          </div>
+          <div className={styles.settingLinkContent}>
+            <div className={styles.settingLabel}>Gestion des clients</div>
+            <div className={styles.settingDesc}>Ajouter, modifier, archiver</div>
+          </div>
+          <IconChevronRight size={16} className={styles.settingLinkChevron} />
         </button>
-        <button
-          className={styles.footerLink}
-          onClick={() => window.kronobar.shell.openExternal('https://github.com/splyy/KronoBar')}
-        >
-          <IconHeart size={14} />
-          Soutenir le projet
+
+        <button className={styles.settingLink} onClick={() => setSubView('projects')}>
+          <div className={styles.settingLinkIcon} style={{ background: 'var(--blue-soft)' }}>
+            <IconFolder size={16} style={{ color: 'var(--blue-color)' }} />
+          </div>
+          <div className={styles.settingLinkContent}>
+            <div className={styles.settingLabel}>Gestion des projets</div>
+            <div className={styles.settingDesc}>Ajouter, modifier, archiver</div>
+          </div>
+          <IconChevronRight size={16} className={styles.settingLinkChevron} />
         </button>
-      </footer>
-    </div>
-  );
-}
 
-// --- General Section ---
-function GeneralSection({ settings, updateSetting }: {
-  settings: ReturnType<typeof useSettings>['settings'];
-  updateSetting: ReturnType<typeof useSettings>['updateSetting'];
-}) {
-  return (
-    <div className={styles.section}>
-      <div className={styles.row}>
-        <span className={styles.rowLabel}>Format du temps</span>
-        <div className={styles.rowValue}>
-          <Select
-            size="sm"
-            value={settings.time_format}
-            onValueChange={(v) => updateSetting('time_format', v as 'hhmm' | 'decimal')}
-            options={[
-              { value: 'hhmm', label: 'HH:MM' },
-              { value: 'decimal', label: 'Décimal' },
-            ]}
-          />
-        </div>
-      </div>
+        {/* APPLICATION */}
+        <div className={styles.sectionLabel}>Application</div>
 
-      <div className={styles.row}>
-        <span className={styles.rowLabel}>Devise</span>
-        <div className={styles.rowValue}>
-          <Select
-            size="sm"
-            value={settings.currency}
-            onValueChange={(v) => updateSetting('currency', v)}
-            options={CURRENCIES}
-          />
-        </div>
-      </div>
-
-      <div className={styles.row}>
-        <span className={styles.rowLabel}>Heures par jour</span>
-        <div className={styles.rowValue}>
-          <input
-            type="number"
-            className={styles.smallInput}
-            value={settings.hours_per_day}
-            min={1}
-            max={24}
-            onChange={(e) => updateSetting('hours_per_day', parseInt(e.target.value) || 7)}
-          />
-        </div>
-      </div>
-
-      <div className={styles.row}>
-        <span className={styles.rowLabel}>Lancer au démarrage</span>
-        <div className={styles.rowValue}>
+        <div className={styles.settingRow}>
+          <div>
+            <div className={styles.settingLabel}>Lancer au démarrage</div>
+            <div className={styles.settingDesc}>Ouvrir KronoBar au login macOS</div>
+          </div>
           <button
-            className={`${styles.toggle} ${settings.launch_at_login ? styles.toggleActive : ''}`}
+            className={`${styles.toggle} ${settings.launch_at_login ? styles.toggleOn : ''}`}
             onClick={() => updateSetting('launch_at_login', !settings.launch_at_login)}
           >
-            <span className={styles.toggleKnob} />
+            <div className={styles.toggleKnob} />
           </button>
         </div>
+
+        <div className={styles.settingRow}>
+          <div>
+            <div className={styles.settingLabel}>Raccourci global</div>
+            <div className={styles.settingDesc}>Ouvrir/fermer le popup</div>
+          </div>
+          <div className={styles.segmented} style={{ background: 'var(--bg-secondary)' }}>
+            <span className={styles.shortcutDisplay}>⌘ + Shift + T</span>
+          </div>
+        </div>
+
+        {/* DONNÉES */}
+        <div className={styles.sectionLabel}>Données</div>
+
+        <div className={styles.settingRow}>
+          <div>
+            <div className={styles.settingLabel}>Exporter (CSV)</div>
+            <div className={styles.settingDesc}>Sauvegarder toutes les entrées</div>
+          </div>
+          <button className={styles.btnExport} onClick={handleExport}>
+            Exporter
+          </button>
+        </div>
+
+        {/* À PROPOS */}
+        <div className={styles.sectionLabel}>À propos</div>
+
+        <button
+          className={styles.settingLink}
+          style={{ borderBottom: `1px solid var(--border-subtle)` }}
+          onClick={() => window.kronobar.shell.openExternal('https://github.com/splyy/KronoBar/issues')}
+        >
+          <div className={styles.settingLinkIcon} style={{ background: 'var(--danger-soft)' }}>
+            <IconAlertCircle size={16} style={{ color: 'var(--danger-color)' }} />
+          </div>
+          <div className={styles.settingLinkContent}>
+            <div className={styles.settingLabel}>Signaler un bug</div>
+            <div className={styles.settingDesc}>Ouvrir une issue sur GitHub</div>
+          </div>
+          <IconChevronRight size={16} className={styles.settingLinkChevron} />
+        </button>
+
+        <button
+          className={styles.settingLink}
+          onClick={() => window.kronobar.shell.openExternal('https://github.com/splyy/KronoBar')}
+        >
+          <div className={styles.settingLinkIcon} style={{ background: 'var(--purple-soft)' }}>
+            <IconStar size={16} style={{ color: 'var(--purple-color)' }} />
+          </div>
+          <div className={styles.settingLinkContent}>
+            <div className={styles.settingLabel}>Soutenir le projet</div>
+            <div className={styles.settingDesc}>Laisser une étoile sur GitHub</div>
+          </div>
+          <IconChevronRight size={16} className={styles.settingLinkChevron} />
+        </button>
+      </div>
+
+      <div className={styles.appFooter}>
+        <div className={styles.appFooterName}>KronoBar</div>
+        <div className={styles.appFooterVersion}>v1.0.0 — MIT License</div>
       </div>
     </div>
   );
 }
 
-// --- Clients Section ---
-function ClientsSection({ clients, onCreate, onUpdate, onArchive, onUnarchive }: {
+// --- Clients View ---
+function ClientsView({ clients, currency, onCreate, onUpdate, onArchive, onUnarchive, onBack }: {
   clients: Client[];
+  currency: string;
   onCreate: (input: ClientInput) => Promise<Client>;
   onUpdate: (id: number, input: ClientInput) => Promise<Client>;
   onArchive: (id: number) => Promise<void>;
   onUnarchive: (id: number) => Promise<void>;
+  onBack: () => void;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const currencySymbol = getCurrencySymbol(currency);
 
   const handleSave = async (input: ClientInput) => {
     if (editingClient) {
@@ -176,50 +250,59 @@ function ClientsSection({ clients, onCreate, onUpdate, onArchive, onUnarchive }:
   };
 
   return (
-    <div className={styles.section}>
-      <div className={styles.itemList}>
-        {clients.map((client) => (
-          <div key={client.id} className={`${styles.item} ${client.archived_at ? styles.itemArchived : ''}`}>
-            <span className={styles.itemDot} style={{ backgroundColor: client.color }} />
-            <div className={styles.itemInfo}>
-              <div className={styles.itemName}>{client.name}</div>
-              {client.daily_rate && (
-                <div className={styles.itemDetail}>{client.daily_rate}€/j</div>
-              )}
-            </div>
-            <div className={styles.itemActions}>
-              <Tooltip content="Modifier">
-                <button
-                  className={styles.iconBtn}
-                  onClick={() => { setEditingClient(client); setShowForm(true); }}
-                >
-                  <IconPencil size={13} />
-                </button>
-              </Tooltip>
-              <Tooltip content={client.archived_at ? 'Désarchiver' : 'Archiver'}>
-                <button
-                  className={styles.iconBtn}
-                  onClick={() => client.archived_at ? onUnarchive(client.id) : onArchive(client.id)}
-                >
-                  {client.archived_at ? <IconUnarchive size={13} /> : <IconArchive size={13} />}
-                </button>
-              </Tooltip>
-            </div>
-          </div>
-        ))}
+    <div className={styles.scroll}>
+      <div className={styles.subHeader}>
+        <button className={styles.backBtn} onClick={onBack}>
+          <IconChevronLeft size={16} />
+        </button>
+        <span className={styles.subTitle}>Clients</span>
       </div>
 
-      {showForm ? (
-        <ClientForm
-          client={editingClient}
-          onSave={handleSave}
-          onCancel={() => { setShowForm(false); setEditingClient(null); }}
-        />
-      ) : (
-        <button className={styles.addItemBtn} onClick={() => setShowForm(true)}>
-          <IconPlus size={14} /> Ajouter un client
-        </button>
-      )}
+      <div className={styles.section}>
+        <div className={styles.itemList}>
+          {clients.map((client) => (
+            <div key={client.id} className={`${styles.item} ${client.archived_at ? styles.itemArchived : ''}`}>
+              <span className={styles.itemDot} style={{ backgroundColor: client.color }} />
+              <div className={styles.itemInfo}>
+                <div className={styles.itemName}>{client.name}</div>
+                {client.daily_rate != null && (
+                  <div className={styles.itemDetail}>{client.daily_rate}{currencySymbol}/j</div>
+                )}
+              </div>
+              <div className={styles.itemActions}>
+                <Tooltip content="Modifier">
+                  <button
+                    className={styles.iconBtn}
+                    onClick={() => { setEditingClient(client); setShowForm(true); }}
+                  >
+                    <IconPencil size={13} />
+                  </button>
+                </Tooltip>
+                <Tooltip content={client.archived_at ? 'Désarchiver' : 'Archiver'}>
+                  <button
+                    className={styles.iconBtn}
+                    onClick={() => client.archived_at ? onUnarchive(client.id) : onArchive(client.id)}
+                  >
+                    {client.archived_at ? <IconUnarchive size={13} /> : <IconArchive size={13} />}
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {showForm ? (
+          <ClientForm
+            client={editingClient}
+            onSave={handleSave}
+            onCancel={() => { setShowForm(false); setEditingClient(null); }}
+          />
+        ) : (
+          <button className={styles.addItemBtn} onClick={() => setShowForm(true)}>
+            <IconPlus size={14} /> Ajouter un client
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -297,14 +380,15 @@ function ClientForm({ client, onSave, onCancel }: {
   );
 }
 
-// --- Projects Section ---
-function ProjectsSection({ clients, projects, onCreate, onUpdate, onArchive, onUnarchive }: {
+// --- Projects View ---
+function ProjectsView({ clients, projects, onCreate, onUpdate, onArchive, onUnarchive, onBack }: {
   clients: Client[];
   projects: Project[];
   onCreate: (input: ProjectInput) => Promise<void>;
   onUpdate: (id: number, input: ProjectInput) => Promise<Project>;
   onArchive: (id: number) => Promise<void>;
   onUnarchive: (id: number) => Promise<void>;
+  onBack: () => void;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -322,52 +406,61 @@ function ProjectsSection({ clients, projects, onCreate, onUpdate, onArchive, onU
   const clientMap = new Map(clients.map((c) => [c.id, c]));
 
   return (
-    <div className={styles.section}>
-      <div className={styles.itemList}>
-        {projects.map((project) => {
-          const client = clientMap.get(project.client_id);
-          return (
-            <div key={project.id} className={`${styles.item} ${project.archived_at ? styles.itemArchived : ''}`}>
-              <span className={styles.itemDot} style={{ backgroundColor: client?.color ?? '#999' }} />
-              <div className={styles.itemInfo}>
-                <div className={styles.itemName}>{project.name}</div>
-                <div className={styles.itemDetail}>{client?.name ?? 'Client inconnu'}</div>
-              </div>
-              <div className={styles.itemActions}>
-                <Tooltip content="Modifier">
-                  <button
-                    className={styles.iconBtn}
-                    onClick={() => { setEditingProject(project); setShowForm(true); }}
-                  >
-                    <IconPencil size={13} />
-                  </button>
-                </Tooltip>
-                <Tooltip content={project.archived_at ? 'Désarchiver' : 'Archiver'}>
-                  <button
-                    className={styles.iconBtn}
-                    onClick={() => project.archived_at ? onUnarchive(project.id) : onArchive(project.id)}
-                  >
-                    {project.archived_at ? <IconUnarchive size={13} /> : <IconArchive size={13} />}
-                  </button>
-                </Tooltip>
-              </div>
-            </div>
-          );
-        })}
+    <div className={styles.scroll}>
+      <div className={styles.subHeader}>
+        <button className={styles.backBtn} onClick={onBack}>
+          <IconChevronLeft size={16} />
+        </button>
+        <span className={styles.subTitle}>Projets</span>
       </div>
 
-      {showForm ? (
-        <ProjectForm
-          clients={clients}
-          project={editingProject}
-          onSave={handleSave}
-          onCancel={() => { setShowForm(false); setEditingProject(null); }}
-        />
-      ) : (
-        <button className={styles.addItemBtn} onClick={() => setShowForm(true)} disabled={clients.length === 0}>
-          <IconPlus size={14} /> Ajouter un projet
-        </button>
-      )}
+      <div className={styles.section}>
+        <div className={styles.itemList}>
+          {projects.map((project) => {
+            const client = clientMap.get(project.client_id);
+            return (
+              <div key={project.id} className={`${styles.item} ${project.archived_at ? styles.itemArchived : ''}`}>
+                <span className={styles.itemDot} style={{ backgroundColor: client?.color ?? '#999' }} />
+                <div className={styles.itemInfo}>
+                  <div className={styles.itemName}>{project.name}</div>
+                  <div className={styles.itemDetail}>{client?.name ?? 'Client inconnu'}</div>
+                </div>
+                <div className={styles.itemActions}>
+                  <Tooltip content="Modifier">
+                    <button
+                      className={styles.iconBtn}
+                      onClick={() => { setEditingProject(project); setShowForm(true); }}
+                    >
+                      <IconPencil size={13} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={project.archived_at ? 'Désarchiver' : 'Archiver'}>
+                    <button
+                      className={styles.iconBtn}
+                      onClick={() => project.archived_at ? onUnarchive(project.id) : onArchive(project.id)}
+                    >
+                      {project.archived_at ? <IconUnarchive size={13} /> : <IconArchive size={13} />}
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {showForm ? (
+          <ProjectForm
+            clients={clients}
+            project={editingProject}
+            onSave={handleSave}
+            onCancel={() => { setShowForm(false); setEditingProject(null); }}
+          />
+        ) : (
+          <button className={styles.addItemBtn} onClick={() => setShowForm(true)} disabled={clients.length === 0}>
+            <IconPlus size={14} /> Ajouter un projet
+          </button>
+        )}
+      </div>
     </div>
   );
 }

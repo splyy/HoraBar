@@ -8,12 +8,14 @@ import styles from './TimeEntryForm.module.css';
 interface TimeEntryFormProps {
   date: string;
   entry?: TrackingEntryWithDetails | null;
+  clients?: { id: number; name: string }[];
   onSave: (input: TrackingEntryInput) => Promise<void>;
   onCancel: () => void;
 }
 
-export function TimeEntryForm({ date, entry, onSave, onCancel }: TimeEntryFormProps) {
-  const { clients } = useClients();
+export function TimeEntryForm({ date, entry, clients: clientsProp, onSave, onCancel }: TimeEntryFormProps) {
+  const { clients: fetchedClients } = useClients();
+  const clients = clientsProp ?? fetchedClients;
   const [selectedClientId, setSelectedClientId] = useState<number | ''>(entry?.client_id ?? '');
   const { projects } = useProjects(selectedClientId || undefined);
 

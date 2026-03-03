@@ -24,13 +24,3 @@ export function useFormatDays() {
     return `${days.toFixed(1)}j`;
   };
 }
-
-export function formatDurationHHMM(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}h${m.toString().padStart(2, '0')}`;
-}
-
-export function formatDurationDecimal(minutes: number): string {
-  return (minutes / 60).toFixed(2) + 'h';
-}

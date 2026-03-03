@@ -1,58 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFormatDuration, useFormatDays } from '../../hooks/useFormatDuration';
 import { useSettings } from '../../hooks/useSettings';
-import { EmptyState } from '../common/EmptyState';
-import { Select } from '../common/Select';
-import { IconChart } from '../common/Icons';
-import type { StatEntry } from '@/shared/types';
+import { useToast } from '../../hooks/useToast';
+import { getCurrencySymbol } from '../../../shared/utils/currency';
+import { IconChevronLeft, IconChevronRight, IconDownloadStroke } from '../common/Icons';
+import type { StatEntry } from '../../../shared/types';
 import styles from './Stats.module.css';
-
-type PeriodKey = 'this_week' | 'this_month' | 'this_year' | 'last_month' | 'last_year';
-
-function getPeriodRange(key: PeriodKey): { start: string; end: string } {
-  const now = new Date();
-  const fmt = (d: Date) => d.toISOString().split('T')[0];
-
-  switch (key) {
-    case 'this_week': {
-      const d = new Date(now);
-      const day = d.getDay();
-      const diff = day === 0 ? 6 : day - 1;
-      d.setDate(d.getDate() - diff);
-      const start = fmt(d);
-      d.setDate(d.getDate() + 6);
-      return { start, end: fmt(d) };
-    }
-    case 'this_month':
-      return {
-        start: fmt(new Date(now.getFullYear(), now.getMonth(), 1)),
-        end: fmt(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
-      };
-    case 'this_year':
-      return { start: `${now.getFullYear()}-01-01`, end: `${now.getFullYear()}-12-31` };
-    case 'last_month':
-      return {
-        start: fmt(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
-        end: fmt(new Date(now.getFullYear(), now.getMonth(), 0)),
-      };
-    case 'last_year':
-      return { start: `${now.getFullYear() - 1}-01-01`, end: `${now.getFullYear() - 1}-12-31` };
-  }
-}
-
-const PERIOD_OPTIONS: { key: PeriodKey; label: string }[] = [
-  { key: 'this_week', label: 'Cette semaine' },
-  { key: 'this_month', label: 'Ce mois' },
-  { key: 'this_year', label: 'Cette année' },
-  { key: 'last_month', label: 'Mois dernier' },
-  { key: 'last_year', label: 'Année dernière' },
-];
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  EUR: '€',
-  USD: '$',
-  GBP: '£',
-};
 
 interface ClientStats {
   clientId: number;
@@ -61,26 +14,39 @@ interface ClientStats {
   dailyRate: number | null;
   totalMinutes: number;
   revenue: number | null;
-  projects: { projectId: number; projectName: string; totalMinutes: number }[];
+  projectCount: number;
 }
 
 export function Stats() {
-  const [periodKey, setPeriodKey] = useState<PeriodKey>('this_week');
-  const [stats, setStats] = useState<StatEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const { settings } = useSettings();
+  const { showToast } = useToast();
   const formatDuration = useFormatDuration();
   const formatDays = useFormatDays();
-  const { settings } = useSettings();
+  const currencySymbol = getCurrencySymbol(settings.currency);
 
-  const currencySymbol = CURRENCY_SYMBOLS[settings.currency] ?? '€';
+  const start = useMemo(() => {
+    const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    return d.toLocaleDateString('en-CA');
+  }, [currentDate]);
 
+  const end = useMemo(() => {
+    const d = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    return d.toLocaleDateString('en-CA');
+  }, [currentDate]);
+
+  const periodLabel = currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+  const today = new Date();
+  const isCurrentMonth =
+    currentDate.getFullYear() === today.getFullYear() &&
+    currentDate.getMonth() === today.getMonth();
+
+  const [stats, setStats] = useState<StatEntry[]>([]);
   const fetchStats = useCallback(async () => {
-    setLoading(true);
-    const { start, end } = getPeriodRange(periodKey);
     const data = await window.kronobar.tracking.getStats(start, end);
     setStats(data);
-    setLoading(false);
-  }, [periodKey]);
+  }, [start, end]);
 
   useEffect(() => {
     fetchStats();
@@ -98,20 +64,15 @@ export function Stats() {
           dailyRate: s.daily_rate,
           totalMinutes: 0,
           revenue: null,
-          projects: [],
+          projectCount: 0,
         };
         map.set(s.client_id, cs);
       }
       cs.totalMinutes += s.total_minutes;
-      cs.projects.push({
-        projectId: s.project_id,
-        projectName: s.project_name,
-        totalMinutes: s.total_minutes,
-      });
+      cs.projectCount++;
     }
-    // Calculate revenue: (minutes / (hours_per_day * 60)) * daily_rate
     for (const cs of map.values()) {
-      if (cs.dailyRate) {
+      if (cs.dailyRate != null) {
         cs.revenue = (cs.totalMinutes / (settings.hours_per_day * 60)) * cs.dailyRate;
       }
     }
@@ -119,82 +80,130 @@ export function Stats() {
   }, [stats, settings.hours_per_day]);
 
   const totalMinutes = clientStats.reduce((sum, c) => sum + c.totalMinutes, 0);
-  const totalRevenue = clientStats.reduce((sum, c) => sum + (c.revenue ?? 0), 0);
   const maxClientMinutes = Math.max(...clientStats.map((c) => c.totalMinutes), 1);
+  const totalProjects = stats.length;
+
+  // Weighted average TJM
+  const weightedTjm = useMemo(() => {
+    let totalWeightedRate = 0;
+    let totalWeight = 0;
+    for (const cs of clientStats) {
+      if (cs.dailyRate != null) {
+        totalWeightedRate += cs.dailyRate * cs.totalMinutes;
+        totalWeight += cs.totalMinutes;
+      }
+    }
+    return totalWeight > 0 ? totalWeightedRate / totalWeight : 0;
+  }, [clientStats]);
+
+  const handleExport = async () => {
+    try {
+      const result = await window.kronobar.tracking.export(start, end);
+      if (result.success) {
+        showToast('Export CSV réussi');
+      }
+    } catch {
+      showToast('Erreur lors de l\'export', 'error');
+    }
+  };
 
   return (
-    <div>
+    <div className={styles.page}>
+      {/* Header */}
       <div className={styles.header}>
-        <h2>Statistiques</h2>
-        <Select
-          size="sm"
-          value={periodKey}
-          onValueChange={(v) => setPeriodKey(v as PeriodKey)}
-          options={PERIOD_OPTIONS.map((o) => ({ value: o.key, label: o.label }))}
-        />
+        <div>
+          <div className={styles.period}>{periodLabel}</div>
+          <div className={styles.sub}>{isCurrentMonth ? 'Période en cours' : 'Période passée'}</div>
+        </div>
+        <div className={styles.monthNav}>
+          <button
+            className={styles.monthNavBtn}
+            onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+          >
+            <IconChevronLeft size={14} />
+          </button>
+          <button
+            className={styles.monthNavBtn}
+            onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+            style={isCurrentMonth ? { opacity: 0.3, cursor: 'default' } : undefined}
+            disabled={isCurrentMonth}
+          >
+            <IconChevronRight size={14} />
+          </button>
+        </div>
       </div>
 
-      {loading ? null : clientStats.length === 0 ? (
-        <EmptyState icon={<IconChart size={32} />} message="Aucune donnée pour cette période" />
-      ) : (
-        <>
-          <div className={styles.summary}>
-            <div className={styles.card}>
-              <div className={styles.cardLabel}>Temps total</div>
-              <div className={`${styles.cardValue} ${styles.cardAccent}`}>
-                {formatDuration(totalMinutes)}
-              </div>
-            </div>
-            <div className={styles.card}>
-              <div className={styles.cardLabel}>Jours travaillés</div>
-              <div className={styles.cardValue}>
-                {formatDays(totalMinutes)}
-              </div>
-            </div>
-            <div className={styles.card}>
-              <div className={styles.cardLabel}>Revenu</div>
-              <div className={`${styles.cardValue} ${styles.cardSuccess}`}>
-                {totalRevenue > 0 ? `${totalRevenue.toFixed(0)}${currencySymbol}` : '—'}
-              </div>
-            </div>
-            <div className={styles.card}>
-              <div className={styles.cardLabel}>Clients / Projets</div>
-              <div className={styles.cardValue}>{clientStats.length} / {new Set(stats.map(s => s.project_id)).size}</div>
-            </div>
+      {/* KPI Grid */}
+      <div className={styles.kpiGrid}>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiLabel}>Heures</div>
+          <div className={styles.kpiValue} style={{ color: 'var(--accent-color)' }}>
+            {formatDuration(totalMinutes)}
           </div>
+        </div>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiLabel}>Jours</div>
+          <div className={styles.kpiValue} style={{ color: 'var(--success-color)' }}>
+            {formatDays(totalMinutes)}
+          </div>
+          <div className={styles.kpiSub}>base {settings.hours_per_day}h/jour</div>
+        </div>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiLabel}>TJM moyen</div>
+          <div className={styles.kpiValue} style={{ color: 'var(--blue-color)' }}>
+            {weightedTjm > 0 ? `${Math.round(weightedTjm)}${currencySymbol}` : '—'}
+          </div>
+          <div className={styles.kpiSub}>pondéré par client</div>
+        </div>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiLabel}>Clients / Projets</div>
+          <div className={styles.kpiValue} style={{ color: 'var(--purple-color)' }}>
+            {clientStats.length} / {totalProjects}
+          </div>
+          <div className={styles.kpiSub}>actifs ce mois</div>
+        </div>
+      </div>
 
-          <div className={styles.sectionTitle}>Par client</div>
-          {clientStats.map((cs) => (
-            <div key={cs.clientId} className={styles.clientBlock}>
-              <div className={styles.clientRow}>
-                <span className={styles.clientDot} style={{ backgroundColor: cs.clientColor }} />
-                <span className={styles.clientName}>{cs.clientName}</span>
-                <span className={styles.clientHours}>{formatDuration(cs.totalMinutes)}</span>
-                {cs.revenue !== null && (
-                  <span className={styles.clientRevenue}>
-                    {cs.revenue.toFixed(0)}{currencySymbol}
-                  </span>
-                )}
-              </div>
-              <div className={styles.bar}>
-                <div
-                  className={styles.barFill}
-                  style={{
-                    width: `${(cs.totalMinutes / maxClientMinutes) * 100}%`,
-                    backgroundColor: cs.clientColor,
-                  }}
-                />
-              </div>
-              {cs.projects.map((p) => (
-                <div key={p.projectId} className={styles.projectRow}>
-                  <span className={styles.projectName}>{p.projectName}</span>
-                  <span className={styles.projectHours}>{formatDuration(p.totalMinutes)}</span>
+      {/* Client bars */}
+      {clientStats.length > 0 && (
+        <div className={styles.clientBars}>
+          <div className={styles.sectionLabel}>Répartition par client</div>
+          {clientStats.map((cs) => {
+            const pct = Math.round((cs.totalMinutes / totalMinutes) * 100);
+            return (
+              <div key={cs.clientId} className={styles.clientBar}>
+                <div className={styles.clientBarHeader}>
+                  <div className={styles.clientBarName}>
+                    <span className={styles.dot} style={{ backgroundColor: cs.clientColor }} />
+                    {cs.clientName}
+                  </div>
+                  <div className={styles.clientBarStats}>
+                    <span className={styles.clientBarTime}>{formatDuration(cs.totalMinutes)}</span>
+                    <span className={styles.clientBarPct}>{pct}%</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          ))}
-        </>
+                <div className={styles.clientBarTrack}>
+                  <div
+                    className={styles.clientBarFill}
+                    style={{
+                      width: `${(cs.totalMinutes / maxClientMinutes) * 100}%`,
+                      backgroundColor: cs.clientColor,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
+
+      {/* Export */}
+      <div className={styles.statsExport}>
+        <button className={styles.btnExportFull} onClick={handleExport}>
+          <IconDownloadStroke size={14} />
+          Exporter {periodLabel} en CSV
+        </button>
+      </div>
     </div>
   );
 }

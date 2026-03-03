@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, globalShortcut } from 'electron';
 import { TrayManager } from './main/tray';
 import { registerIpcHandlers } from './main/ipc/handlers';
 import { initDatabase, closeDatabase } from './main/database/connection';
@@ -23,6 +23,10 @@ app.whenReady().then(async () => {
     console.log('[KronoBar] IPC handlers registered');
     trayManager = TrayManager.getInstance();
     console.log('[KronoBar] Tray created');
+    globalShortcut.register('CommandOrControl+Shift+T', () => {
+      trayManager?.toggleWindow();
+    });
+    console.log('[KronoBar] Global shortcut registered');
   } catch (err) {
     console.error('[KronoBar] Fatal startup error:', err);
   }
@@ -35,6 +39,10 @@ app.on('second-instance', () => {
 // macOS: keep app running when all windows closed
 app.on('window-all-closed', (e: Event) => {
   e.preventDefault();
+});
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
 });
 
 app.on('before-quit', () => {

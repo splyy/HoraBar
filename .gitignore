@@ -90,3 +90,11 @@ typings/
 
 # Electron-Forge
 out/
+dist/
+
+# IDE
+.idea/
+
+# Claude Code
+.claude/
+CLAUDE.md

@@ -1,3 +1,4 @@
+import { app } from 'electron';
 import { getDatabase, saveDatabase } from '../database/connection';
 import { queryAll, queryOne, run } from '../database/helpers';
 import type { Settings } from '../../shared/types';
@@ -13,6 +14,10 @@ export function setSetting<T>(key: string, value: T): void {
   const db = getDatabase();
   run(db, 'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, JSON.stringify(value)]);
   saveDatabase();
+
+  if (key === 'launch_at_login') {
+    app.setLoginItemSettings({ openAtLogin: Boolean(value) });
+  }
 }
 
 export function getAllSettings(): Settings {

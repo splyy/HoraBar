@@ -94,12 +94,13 @@ export interface KronoBarAPI {
   };
   tracking: {
     list(date: string): Promise<TrackingEntryWithDetails[]>;
-    listByRange(startDate: string, endDate: string): Promise<TrackingEntryWithDetails[]>;
+    listByRange(startDate: string, endDate: string, clientId?: number, projectId?: number): Promise<TrackingEntryWithDetails[]>;
     create(input: TrackingEntryInput): Promise<TrackingEntry>;
     update(id: number, input: TrackingEntryInput): Promise<TrackingEntry>;
     delete(id: number): Promise<void>;
     getTodayTotal(date: string): Promise<number>;
     getStats(startDate: string, endDate: string): Promise<StatEntry[]>;
+    export(startDate: string, endDate: string): Promise<{ success: boolean }>;
   };
   settings: {
     get<T>(key: string): Promise<T | undefined>;
