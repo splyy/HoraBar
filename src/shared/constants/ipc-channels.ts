@@ -26,4 +26,7 @@ export const IPC = {
   SETTINGS_GET: 'settings:get',
   SETTINGS_SET: 'settings:set',
   SETTINGS_GET_ALL: 'settings:getAll',
+
+  // Shell
+  OPEN_EXTERNAL: 'shell:openExternal',
 } as const;

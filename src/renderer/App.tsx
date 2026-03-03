@@ -8,6 +8,7 @@ import { History } from './components/tabs/History';
 import { Stats } from './components/tabs/Stats';
 import { Settings } from './components/tabs/Settings';
 import { IconSun, IconClipboard, IconChart, IconCog } from './components/common/Icons';
+import { Tooltip } from './components/common/Tooltip';
 
 type Tab = 'today' | 'history' | 'stats' | 'settings';
 
@@ -40,14 +41,14 @@ export function App() {
         <div className={styles.content}>{renderTab()}</div>
         <nav className={styles.tabBar}>
           {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span className={styles.tabIcon}><tab.Icon size={18} /></span>
-              <span className={styles.tabLabel}>{tab.label}</span>
-            </button>
+            <Tooltip key={tab.id} content={tab.label} side="top">
+              <button
+                className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <tab.Icon size={20} />
+              </button>
+            </Tooltip>
           ))}
         </nav>
       </div>

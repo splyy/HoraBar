@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSettings } from '../../hooks/useSettings';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
-import { IconPencil, IconArchive, IconUnarchive, IconPlus } from '../common/Icons';
+import { IconPencil, IconArchive, IconUnarchive, IconPlus, IconBug, IconHeart } from '../common/Icons';
 import { Select } from '../common/Select';
 import { Tooltip } from '../common/Tooltip';
 import type { Client, ClientInput, Project, ProjectInput } from '@/shared/types';
@@ -70,6 +70,23 @@ export function Settings() {
           onUnarchive={unarchiveProject}
         />
       )}
+
+      <footer className={styles.footer}>
+        <button
+          className={styles.footerLink}
+          onClick={() => window.horabar.shell.openExternal('https://github.com/splyy/HoraBar/issues')}
+        >
+          <IconBug size={14} />
+          Signaler un bug
+        </button>
+        <button
+          className={styles.footerLink}
+          onClick={() => window.horabar.shell.openExternal('https://github.com/splyy/HoraBar')}
+        >
+          <IconHeart size={14} />
+          Soutenir le projet
+        </button>
+      </footer>
     </div>
   );
 }

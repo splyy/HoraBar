@@ -31,6 +31,9 @@ const api: HoraBarAPI = {
     set: (key, value) => ipcRenderer.invoke(IPC.SETTINGS_SET, key, value),
     getAll: () => ipcRenderer.invoke(IPC.SETTINGS_GET_ALL),
   },
+  shell: {
+    openExternal: (url) => ipcRenderer.invoke(IPC.OPEN_EXTERNAL, url),
+  },
 };
 
 contextBridge.exposeInMainWorld('horabar', api);

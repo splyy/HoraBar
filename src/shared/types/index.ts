@@ -106,4 +106,7 @@ export interface HoraBarAPI {
     set<T>(key: string, value: T): Promise<void>;
     getAll(): Promise<Settings>;
   };
+  shell: {
+    openExternal(url: string): Promise<void>;
+  };
 }

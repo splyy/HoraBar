@@ -29,15 +29,13 @@
 .tab {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: var(--space-xs) var(--space-sm);
+  justify-content: center;
+  padding: var(--space-sm);
   border: none;
   background: none;
   border-radius: var(--radius-md);
   color: var(--text-tertiary);
-  font-size: var(--font-size-xs);
   transition: color 0.15s, background 0.15s;
 }
 
@@ -54,15 +52,4 @@
 
 .tabActive:hover {
   color: var(--accent-color);
-}
-
-.tabIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.tabLabel {
-  font-weight: 500;
 }

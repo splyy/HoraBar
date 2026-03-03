@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, shell } from 'electron';
 // eslint-disable-next-line import/no-unresolved
 import { IPC } from '@/shared/constants/ipc-channels';
 import * as clientsService from '../services/clients';
@@ -89,5 +89,13 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IPC.SETTINGS_GET_ALL, () => {
     return settingsService.getAllSettings();
+  });
+
+  // --- Shell ---
+  ipcMain.handle(IPC.OPEN_EXTERNAL, (_event, url: string) => {
+    if (typeof url !== 'string' || !url.startsWith('https://')) {
+      throw new Error('Only https URLs are allowed');
+    }
+    return shell.openExternal(url);
   });
 }

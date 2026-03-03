@@ -27,29 +27,31 @@ export function AlertDialog({
         {trigger}
       </RadixAlertDialog.Trigger>
 
-      <RadixAlertDialog.Overlay className={styles.overlay} />
-      <RadixAlertDialog.Content className={styles.content}>
-        <RadixAlertDialog.Title className={styles.title}>
-          {title}
-        </RadixAlertDialog.Title>
-        <RadixAlertDialog.Description className={styles.description}>
-          {description}
-        </RadixAlertDialog.Description>
+      <RadixAlertDialog.Portal>
+        <RadixAlertDialog.Overlay className={styles.overlay} />
+        <RadixAlertDialog.Content className={styles.content}>
+          <RadixAlertDialog.Title className={styles.title}>
+            {title}
+          </RadixAlertDialog.Title>
+          <RadixAlertDialog.Description className={styles.description}>
+            {description}
+          </RadixAlertDialog.Description>
 
-        <div className={styles.actions}>
-          <RadixAlertDialog.Cancel asChild>
-            <button className={styles.cancelBtn}>{cancelLabel}</button>
-          </RadixAlertDialog.Cancel>
-          <RadixAlertDialog.Action asChild>
-            <button
-              className={`${styles.confirmBtn} ${variant === 'danger' ? styles.danger : ''}`}
-              onClick={onConfirm}
-            >
-              {confirmLabel}
-            </button>
-          </RadixAlertDialog.Action>
-        </div>
-      </RadixAlertDialog.Content>
+          <div className={styles.actions}>
+            <RadixAlertDialog.Cancel asChild>
+              <button className={styles.cancelBtn}>{cancelLabel}</button>
+            </RadixAlertDialog.Cancel>
+            <RadixAlertDialog.Action asChild>
+              <button
+                className={`${styles.confirmBtn} ${variant === 'danger' ? styles.danger : ''}`}
+                onClick={onConfirm}
+              >
+                {confirmLabel}
+              </button>
+            </RadixAlertDialog.Action>
+          </div>
+        </RadixAlertDialog.Content>
+      </RadixAlertDialog.Portal>
     </RadixAlertDialog.Root>
   );
 }
