@@ -3,7 +3,7 @@ import { ipcMain, shell } from 'electron';
 import { IPC } from '@/shared/constants/ipc-channels';
 import * as clientsService from '../services/clients';
 import * as projectsService from '../services/projects';
-import * as timeEntriesService from '../services/time-entries';
+import * as trackingService from '../services/tracking';
 import * as settingsService from '../services/settings';
 
 export function registerIpcHandlers(): void {
@@ -49,33 +49,33 @@ export function registerIpcHandlers(): void {
     projectsService.unarchiveProject(id);
   });
 
-  // --- Time Entries ---
-  ipcMain.handle(IPC.TIME_ENTRIES_LIST, (_event, date: string) => {
-    return timeEntriesService.listTimeEntries(date);
+  // --- Tracking ---
+  ipcMain.handle(IPC.TRACKING_LIST, (_event, date: string) => {
+    return trackingService.listTracking(date);
   });
 
-  ipcMain.handle(IPC.TIME_ENTRIES_LIST_BY_RANGE, (_event, startDate: string, endDate: string) => {
-    return timeEntriesService.listTimeEntriesByRange(startDate, endDate);
+  ipcMain.handle(IPC.TRACKING_LIST_BY_RANGE, (_event, startDate: string, endDate: string) => {
+    return trackingService.listTrackingByRange(startDate, endDate);
   });
 
-  ipcMain.handle(IPC.TIME_ENTRIES_CREATE, (_event, input) => {
-    return timeEntriesService.createTimeEntry(input);
+  ipcMain.handle(IPC.TRACKING_CREATE, (_event, input) => {
+    return trackingService.createTrackingEntry(input);
   });
 
-  ipcMain.handle(IPC.TIME_ENTRIES_UPDATE, (_event, id: number, input) => {
-    return timeEntriesService.updateTimeEntry(id, input);
+  ipcMain.handle(IPC.TRACKING_UPDATE, (_event, id: number, input) => {
+    return trackingService.updateTrackingEntry(id, input);
   });
 
-  ipcMain.handle(IPC.TIME_ENTRIES_DELETE, (_event, id: number) => {
-    timeEntriesService.deleteTimeEntry(id);
+  ipcMain.handle(IPC.TRACKING_DELETE, (_event, id: number) => {
+    trackingService.deleteTrackingEntry(id);
   });
 
-  ipcMain.handle(IPC.TIME_ENTRIES_TODAY_TOTAL, (_event, date: string) => {
-    return timeEntriesService.getTodayTotal(date);
+  ipcMain.handle(IPC.TRACKING_TODAY_TOTAL, (_event, date: string) => {
+    return trackingService.getTodayTotal(date);
   });
 
-  ipcMain.handle(IPC.TIME_ENTRIES_STATS, (_event, startDate: string, endDate: string) => {
-    return timeEntriesService.getStatsByPeriod(startDate, endDate);
+  ipcMain.handle(IPC.TRACKING_STATS, (_event, startDate: string, endDate: string) => {
+    return trackingService.getStatsByPeriod(startDate, endDate);
   });
 
   // --- Settings ---

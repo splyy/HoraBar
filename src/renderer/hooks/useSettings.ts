@@ -14,7 +14,7 @@ export function useSettings() {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const data = await window.horabar.settings.getAll();
+    const data = await window.kronobar.settings.getAll();
     setSettings(data);
     setLoading(false);
   }, []);
@@ -24,7 +24,7 @@ export function useSettings() {
   }, [refresh]);
 
   const updateSetting = async <K extends keyof Settings>(key: K, value: Settings[K]) => {
-    await window.horabar.settings.set(key, value);
+    await window.kronobar.settings.set(key, value);
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 

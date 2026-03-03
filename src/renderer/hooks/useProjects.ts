@@ -7,7 +7,7 @@ export function useProjects(clientId?: number, includeArchived = false) {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const data = await window.horabar.projects.list(clientId, includeArchived);
+    const data = await window.kronobar.projects.list(clientId, includeArchived);
     setProjects(data);
     setLoading(false);
   }, [clientId, includeArchived]);
@@ -17,24 +17,24 @@ export function useProjects(clientId?: number, includeArchived = false) {
   }, [refresh]);
 
   const create = async (input: ProjectInput) => {
-    const project = await window.horabar.projects.create(input);
+    const project = await window.kronobar.projects.create(input);
     await refresh();
     return project;
   };
 
   const update = async (id: number, input: ProjectInput) => {
-    const project = await window.horabar.projects.update(id, input);
+    const project = await window.kronobar.projects.update(id, input);
     await refresh();
     return project;
   };
 
   const archive = async (id: number) => {
-    await window.horabar.projects.archive(id);
+    await window.kronobar.projects.archive(id);
     await refresh();
   };
 
   const unarchive = async (id: number) => {
-    await window.horabar.projects.unarchive(id);
+    await window.kronobar.projects.unarchive(id);
     await refresh();
   };
 

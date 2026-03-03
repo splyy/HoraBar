@@ -39,7 +39,7 @@ export class TrayManager {
     const iconPath = this.getIconPath();
     const icon = nativeImage.createFromPath(iconPath);
     const tray = new Tray(icon);
-    tray.setToolTip('HoraBar');
+    tray.setToolTip('KronoBar');
     return tray;
   }
 
@@ -97,7 +97,7 @@ export class TrayManager {
     this.tray.on('right-click', () => {
       const contextMenu = Menu.buildFromTemplate([
         {
-          label: 'Quitter HoraBar',
+          label: 'Quitter KronoBar',
           click: () => app.quit(),
         },
       ]);

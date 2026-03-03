@@ -77,7 +77,7 @@ export function Stats() {
   const fetchStats = useCallback(async () => {
     setLoading(true);
     const { start, end } = getPeriodRange(periodKey);
-    const data = await window.horabar.timeEntries.getStats(start, end);
+    const data = await window.kronobar.tracking.getStats(start, end);
     setStats(data);
     setLoading(false);
   }, [periodKey]);

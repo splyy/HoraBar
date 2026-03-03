@@ -1,7 +1,7 @@
-import type { HoraBarAPI } from './shared/types';
+import type { KronoBarAPI } from './shared/types';
 
 declare global {
   interface Window {
-    horabar: HoraBarAPI;
+    kronobar: KronoBarAPI;
   }
 }

@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { IPC } from './shared/constants/ipc-channels';
-import type { HoraBarAPI } from './shared/types';
+import type { KronoBarAPI } from './shared/types';
 
-const api: HoraBarAPI = {
+const api: KronoBarAPI = {
   clients: {
     list: (includeArchived) => ipcRenderer.invoke(IPC.CLIENTS_LIST, includeArchived),
     create: (input) => ipcRenderer.invoke(IPC.CLIENTS_CREATE, input),
@@ -17,14 +17,14 @@ const api: HoraBarAPI = {
     archive: (id) => ipcRenderer.invoke(IPC.PROJECTS_ARCHIVE, id),
     unarchive: (id) => ipcRenderer.invoke(IPC.PROJECTS_UNARCHIVE, id),
   },
-  timeEntries: {
-    list: (date) => ipcRenderer.invoke(IPC.TIME_ENTRIES_LIST, date),
-    listByRange: (start, end) => ipcRenderer.invoke(IPC.TIME_ENTRIES_LIST_BY_RANGE, start, end),
-    create: (input) => ipcRenderer.invoke(IPC.TIME_ENTRIES_CREATE, input),
-    update: (id, input) => ipcRenderer.invoke(IPC.TIME_ENTRIES_UPDATE, id, input),
-    delete: (id) => ipcRenderer.invoke(IPC.TIME_ENTRIES_DELETE, id),
-    getTodayTotal: (date) => ipcRenderer.invoke(IPC.TIME_ENTRIES_TODAY_TOTAL, date),
-    getStats: (start, end) => ipcRenderer.invoke(IPC.TIME_ENTRIES_STATS, start, end),
+  tracking: {
+    list: (date) => ipcRenderer.invoke(IPC.TRACKING_LIST, date),
+    listByRange: (start, end) => ipcRenderer.invoke(IPC.TRACKING_LIST_BY_RANGE, start, end),
+    create: (input) => ipcRenderer.invoke(IPC.TRACKING_CREATE, input),
+    update: (id, input) => ipcRenderer.invoke(IPC.TRACKING_UPDATE, id, input),
+    delete: (id) => ipcRenderer.invoke(IPC.TRACKING_DELETE, id),
+    getTodayTotal: (date) => ipcRenderer.invoke(IPC.TRACKING_TODAY_TOTAL, date),
+    getStats: (start, end) => ipcRenderer.invoke(IPC.TRACKING_STATS, start, end),
   },
   settings: {
     get: (key) => ipcRenderer.invoke(IPC.SETTINGS_GET, key),
@@ -36,4 +36,4 @@ const api: HoraBarAPI = {
   },
 };
 
-contextBridge.exposeInMainWorld('horabar', api);
+contextBridge.exposeInMainWorld('kronobar', api);

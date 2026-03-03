@@ -1,13 +1,13 @@
 import { getDatabase, saveDatabase } from '../database/connection';
 import { queryAll, queryOne, run } from '../database/helpers';
-import type { TimeEntry, TimeEntryInput, TimeEntryWithDetails } from '../../shared/types';
+import type { TrackingEntry, TrackingEntryInput, TrackingEntryWithDetails } from '../../shared/types';
 
-export function listTimeEntries(date: string): TimeEntryWithDetails[] {
+export function listTracking(date: string): TrackingEntryWithDetails[] {
   const db = getDatabase();
-  return queryAll<TimeEntryWithDetails>(
+  return queryAll<TrackingEntryWithDetails>(
     db,
     `SELECT te.*, p.name as project_name, p.client_id, c.name as client_name, c.color as client_color
-     FROM time_entries te
+     FROM tracking te
      JOIN projects p ON te.project_id = p.id
      JOIN clients c ON p.client_id = c.id
      WHERE te.date = ?
@@ -16,12 +16,12 @@ export function listTimeEntries(date: string): TimeEntryWithDetails[] {
   );
 }
 
-export function listTimeEntriesByRange(startDate: string, endDate: string): TimeEntryWithDetails[] {
+export function listTrackingByRange(startDate: string, endDate: string): TrackingEntryWithDetails[] {
   const db = getDatabase();
-  return queryAll<TimeEntryWithDetails>(
+  return queryAll<TrackingEntryWithDetails>(
     db,
     `SELECT te.*, p.name as project_name, p.client_id, c.name as client_name, c.color as client_color
-     FROM time_entries te
+     FROM tracking te
      JOIN projects p ON te.project_id = p.id
      JOIN clients c ON p.client_id = c.id
      WHERE te.date >= ? AND te.date <= ?
@@ -30,36 +30,36 @@ export function listTimeEntriesByRange(startDate: string, endDate: string): Time
   );
 }
 
-export function getTimeEntry(id: number): TimeEntry | undefined {
+export function getTrackingEntry(id: number): TrackingEntry | undefined {
   const db = getDatabase();
-  return queryOne<TimeEntry>(db, 'SELECT * FROM time_entries WHERE id = ?', [id]);
+  return queryOne<TrackingEntry>(db, 'SELECT * FROM tracking WHERE id = ?', [id]);
 }
 
-export function createTimeEntry(input: TimeEntryInput): TimeEntry {
+export function createTrackingEntry(input: TrackingEntryInput): TrackingEntry {
   const db = getDatabase();
   const { lastId } = run(
     db,
-    'INSERT INTO time_entries (project_id, date, duration, description) VALUES (?, ?, ?, ?)',
+    'INSERT INTO tracking (project_id, date, duration, description) VALUES (?, ?, ?, ?)',
     [input.project_id, input.date, input.duration, input.description ?? null]
   );
   saveDatabase();
-  return getTimeEntry(lastId)!;
+  return getTrackingEntry(lastId)!;
 }
 
-export function updateTimeEntry(id: number, input: TimeEntryInput): TimeEntry {
+export function updateTrackingEntry(id: number, input: TrackingEntryInput): TrackingEntry {
   const db = getDatabase();
   run(
     db,
-    `UPDATE time_entries SET project_id = ?, date = ?, duration = ?, description = ?, updated_at = datetime('now') WHERE id = ?`,
+    `UPDATE tracking SET project_id = ?, date = ?, duration = ?, description = ?, updated_at = datetime('now') WHERE id = ?`,
     [input.project_id, input.date, input.duration, input.description ?? null, id]
   );
   saveDatabase();
-  return getTimeEntry(id)!;
+  return getTrackingEntry(id)!;
 }
 
-export function deleteTimeEntry(id: number): void {
+export function deleteTrackingEntry(id: number): void {
   const db = getDatabase();
-  run(db, 'DELETE FROM time_entries WHERE id = ?', [id]);
+  run(db, 'DELETE FROM tracking WHERE id = ?', [id]);
   saveDatabase();
 }
 
@@ -67,7 +67,7 @@ export function getTodayTotal(date: string): number {
   const db = getDatabase();
   const result = queryOne<{ total: number }>(
     db,
-    'SELECT COALESCE(SUM(duration), 0) as total FROM time_entries WHERE date = ?',
+    'SELECT COALESCE(SUM(duration), 0) as total FROM tracking WHERE date = ?',
     [date]
   );
   return result?.total ?? 0;
@@ -83,7 +83,7 @@ export function getStatsByPeriod(
     `SELECT c.id as client_id, c.name as client_name, c.color as client_color, c.daily_rate,
             p.id as project_id, p.name as project_name,
             COALESCE(SUM(te.duration), 0) as total_minutes
-     FROM time_entries te
+     FROM tracking te
      JOIN projects p ON te.project_id = p.id
      JOIN clients c ON p.client_id = c.id
      WHERE te.date >= ? AND te.date <= ?

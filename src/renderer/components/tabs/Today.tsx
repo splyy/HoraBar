@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { useTimeEntries } from '../../hooks/useTimeEntries';
+import { useTracking } from '../../hooks/useTracking';
 import { useFormatDuration, useFormatDays } from '../../hooks/useFormatDuration';
 import { TimeEntryForm } from '../forms/TimeEntryForm';
 import { EmptyState } from '../common/EmptyState';
 import { AlertDialog } from '../common/AlertDialog';
 import { Tooltip } from '../common/Tooltip';
 import { IconPencil, IconTrash, IconPlus, IconClock } from '../common/Icons';
-import type { TimeEntryWithDetails } from '../../../shared/types';
+import type { TrackingEntryWithDetails } from '../../../shared/types';
 import styles from './Today.module.css';
 
 function getToday(): string {
@@ -27,17 +27,17 @@ interface ClientGroup {
   clientId: number;
   clientName: string;
   clientColor: string;
-  entries: TimeEntryWithDetails[];
+  entries: TrackingEntryWithDetails[];
   totalMinutes: number;
 }
 
 export function Today() {
   const today = getToday();
-  const { entries, totalMinutes, loading, create, update, remove } = useTimeEntries(today);
+  const { entries, totalMinutes, loading, create, update, remove } = useTracking(today);
   const formatDuration = useFormatDuration();
   const formatDays = useFormatDays();
   const [showForm, setShowForm] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<TimeEntryWithDetails | null>(null);
+  const [editingEntry, setEditingEntry] = useState<TrackingEntryWithDetails | null>(null);
 
   const groups = useMemo<ClientGroup[]>(() => {
     const map = new Map<number, ClientGroup>();
@@ -59,7 +59,7 @@ export function Today() {
     return Array.from(map.values());
   }, [entries]);
 
-  const handleEdit = (entry: TimeEntryWithDetails) => {
+  const handleEdit = (entry: TrackingEntryWithDetails) => {
     setEditingEntry(entry);
     setShowForm(true);
   };

@@ -74,14 +74,14 @@ export function Settings() {
       <footer className={styles.footer}>
         <button
           className={styles.footerLink}
-          onClick={() => window.horabar.shell.openExternal('https://github.com/splyy/HoraBar/issues')}
+          onClick={() => window.kronobar.shell.openExternal('https://github.com/splyy/KronoBar/issues')}
         >
           <IconBug size={14} />
           Signaler un bug
         </button>
         <button
           className={styles.footerLink}
-          onClick={() => window.horabar.shell.openExternal('https://github.com/splyy/HoraBar')}
+          onClick={() => window.kronobar.shell.openExternal('https://github.com/splyy/KronoBar')}
         >
           <IconHeart size={14} />
           Soutenir le projet

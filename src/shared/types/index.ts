@@ -32,8 +32,8 @@ export interface ProjectInput {
   description?: string | null;
 }
 
-// --- Time Entries ---
-export interface TimeEntry {
+// --- Tracking ---
+export interface TrackingEntry {
   id: number;
   project_id: number;
   date: string;
@@ -43,14 +43,14 @@ export interface TimeEntry {
   updated_at: string;
 }
 
-export interface TimeEntryWithDetails extends TimeEntry {
+export interface TrackingEntryWithDetails extends TrackingEntry {
   project_name: string;
   client_id: number;
   client_name: string;
   client_color: string;
 }
 
-export interface TimeEntryInput {
+export interface TrackingEntryInput {
   project_id: number;
   date: string;
   duration: number;
@@ -77,7 +77,7 @@ export interface StatEntry {
 }
 
 // --- IPC API ---
-export interface HoraBarAPI {
+export interface KronoBarAPI {
   clients: {
     list(includeArchived?: boolean): Promise<Client[]>;
     create(input: ClientInput): Promise<Client>;
@@ -92,11 +92,11 @@ export interface HoraBarAPI {
     archive(id: number): Promise<void>;
     unarchive(id: number): Promise<void>;
   };
-  timeEntries: {
-    list(date: string): Promise<TimeEntryWithDetails[]>;
-    listByRange(startDate: string, endDate: string): Promise<TimeEntryWithDetails[]>;
-    create(input: TimeEntryInput): Promise<TimeEntry>;
-    update(id: number, input: TimeEntryInput): Promise<TimeEntry>;
+  tracking: {
+    list(date: string): Promise<TrackingEntryWithDetails[]>;
+    listByRange(startDate: string, endDate: string): Promise<TrackingEntryWithDetails[]>;
+    create(input: TrackingEntryInput): Promise<TrackingEntry>;
+    update(id: number, input: TrackingEntryInput): Promise<TrackingEntry>;
     delete(id: number): Promise<void>;
     getTodayTotal(date: string): Promise<number>;
     getStats(startDate: string, endDate: string): Promise<StatEntry[]>;

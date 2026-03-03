@@ -13,14 +13,14 @@ export const IPC = {
   PROJECTS_ARCHIVE: 'projects:archive',
   PROJECTS_UNARCHIVE: 'projects:unarchive',
 
-  // Time Entries
-  TIME_ENTRIES_LIST: 'timeEntries:list',
-  TIME_ENTRIES_LIST_BY_RANGE: 'timeEntries:listByRange',
-  TIME_ENTRIES_CREATE: 'timeEntries:create',
-  TIME_ENTRIES_UPDATE: 'timeEntries:update',
-  TIME_ENTRIES_DELETE: 'timeEntries:delete',
-  TIME_ENTRIES_TODAY_TOTAL: 'timeEntries:todayTotal',
-  TIME_ENTRIES_STATS: 'timeEntries:stats',
+  // Tracking
+  TRACKING_LIST: 'tracking:list',
+  TRACKING_LIST_BY_RANGE: 'tracking:listByRange',
+  TRACKING_CREATE: 'tracking:create',
+  TRACKING_UPDATE: 'tracking:update',
+  TRACKING_DELETE: 'tracking:delete',
+  TRACKING_TODAY_TOTAL: 'tracking:todayTotal',
+  TRACKING_STATS: 'tracking:stats',
 
   // Settings
   SETTINGS_GET: 'settings:get',

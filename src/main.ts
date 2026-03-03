@@ -16,15 +16,15 @@ let trayManager: TrayManager | null = null;
 
 app.whenReady().then(async () => {
   try {
-    console.log('[HoraBar] App ready, initializing...');
+    console.log('[KronoBar] App ready, initializing...');
     await initDatabase();
-    console.log('[HoraBar] Database initialized');
+    console.log('[KronoBar] Database initialized');
     registerIpcHandlers();
-    console.log('[HoraBar] IPC handlers registered');
+    console.log('[KronoBar] IPC handlers registered');
     trayManager = TrayManager.getInstance();
-    console.log('[HoraBar] Tray created');
+    console.log('[KronoBar] Tray created');
   } catch (err) {
-    console.error('[HoraBar] Fatal startup error:', err);
+    console.error('[KronoBar] Fatal startup error:', err);
   }
 });
 

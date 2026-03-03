@@ -57,6 +57,16 @@ const migrations: Migration[] = [
       `ALTER TABLE clients RENAME COLUMN hourly_rate TO daily_rate`,
     ],
   },
+  {
+    version: 3,
+    sql: [
+      `ALTER TABLE time_entries RENAME TO tracking`,
+      `DROP INDEX IF EXISTS idx_time_entries_date`,
+      `DROP INDEX IF EXISTS idx_time_entries_project`,
+      `CREATE INDEX IF NOT EXISTS idx_tracking_date ON tracking(date)`,
+      `CREATE INDEX IF NOT EXISTS idx_tracking_project ON tracking(project_id)`,
+    ],
+  },
 ];
 
 export function runMigrations(db: Database): void {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useTimeEntriesByRange } from '../../hooks/useTimeEntries';
+import { useTrackingByRange } from '../../hooks/useTracking';
 import { useFormatDuration, useFormatDays } from '../../hooks/useFormatDuration';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
@@ -9,7 +9,7 @@ import { Select } from '../common/Select';
 import { AlertDialog } from '../common/AlertDialog';
 import { Tooltip } from '../common/Tooltip';
 import { IconChevronLeft, IconChevronRight, IconClipboard, IconPencil, IconTrash, IconPlus } from '../common/Icons';
-import type { TimeEntryWithDetails } from '../../../shared/types';
+import type { TrackingEntryWithDetails } from '../../../shared/types';
 import styles from './History.module.css';
 
 type Period = 'day' | 'week' | 'month' | 'year';
@@ -87,7 +87,7 @@ function formatDayLabel(dateStr: string): string {
 
 interface DayGroup {
   date: string;
-  entries: TimeEntryWithDetails[];
+  entries: TrackingEntryWithDetails[];
   totalMinutes: number;
 }
 
@@ -97,10 +97,10 @@ export function History() {
   const [clientFilter, setClientFilter] = useState<number | ''>('');
   const [projectFilter, setProjectFilter] = useState<number | ''>('');
   const [showForm, setShowForm] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<TimeEntryWithDetails | null>(null);
+  const [editingEntry, setEditingEntry] = useState<TrackingEntryWithDetails | null>(null);
 
   const { start, end } = getDateRange(currentDate, period);
-  const { entries, loading, create, update, remove } = useTimeEntriesByRange(start, end);
+  const { entries, loading, create, update, remove } = useTrackingByRange(start, end);
   const { clients } = useClients();
   const { projects } = useProjects(clientFilter || undefined);
   const formatDuration = useFormatDuration();
@@ -133,7 +133,7 @@ export function History() {
 
   const totalMinutes = filtered.reduce((sum, e) => sum + e.duration, 0);
 
-  const handleEdit = (entry: TimeEntryWithDetails) => {
+  const handleEdit = (entry: TrackingEntryWithDetails) => {
     setEditingEntry(entry);
     setShowForm(true);
   };

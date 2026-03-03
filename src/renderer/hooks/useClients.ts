@@ -7,7 +7,7 @@ export function useClients(includeArchived = false) {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const data = await window.horabar.clients.list(includeArchived);
+    const data = await window.kronobar.clients.list(includeArchived);
     setClients(data);
     setLoading(false);
   }, [includeArchived]);
@@ -17,24 +17,24 @@ export function useClients(includeArchived = false) {
   }, [refresh]);
 
   const create = async (input: ClientInput) => {
-    const client = await window.horabar.clients.create(input);
+    const client = await window.kronobar.clients.create(input);
     await refresh();
     return client;
   };
 
   const update = async (id: number, input: ClientInput) => {
-    const client = await window.horabar.clients.update(id, input);
+    const client = await window.kronobar.clients.update(id, input);
     await refresh();
     return client;
   };
 
   const archive = async (id: number) => {
-    await window.horabar.clients.archive(id);
+    await window.kronobar.clients.archive(id);
     await refresh();
   };
 
   const unarchive = async (id: number) => {
-    await window.horabar.clients.unarchive(id);
+    await window.kronobar.clients.unarchive(id);
     await refresh();
   };
 

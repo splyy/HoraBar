@@ -31,7 +31,7 @@ export async function initDatabase(): Promise<void> {
 
   const SQL = await initSqlJs({ wasmBinary });
 
-  dbPath = path.join(app.getPath('userData'), 'horabar.db');
+  dbPath = path.join(app.getPath('userData'), 'kronobar.db');
 
   // Load existing DB or create new
   if (fs.existsSync(dbPath)) {

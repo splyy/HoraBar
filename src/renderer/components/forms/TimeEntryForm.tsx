@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import { Select } from '../common/Select';
-import type { TimeEntryInput, TimeEntryWithDetails } from '../../../shared/types';
+import type { TrackingEntryInput, TrackingEntryWithDetails } from '../../../shared/types';
 import styles from './TimeEntryForm.module.css';
 
 interface TimeEntryFormProps {
   date: string;
-  entry?: TimeEntryWithDetails | null;
-  onSave: (input: TimeEntryInput) => Promise<void>;
+  entry?: TrackingEntryWithDetails | null;
+  onSave: (input: TrackingEntryInput) => Promise<void>;
   onCancel: () => void;
 }
 
