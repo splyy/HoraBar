@@ -44,15 +44,20 @@ export class TrayManager {
   }
 
   private getIconPath(): string {
+    const isMac = process.platform === 'darwin';
+    const iconName = isMac ? 'iconTemplate.png' : 'icon.png';
+
     // In production, icons are in the resources folder
     if (app.isPackaged) {
-      return path.join(process.resourcesPath, 'icons', 'iconTemplate.png');
+      return path.join(process.resourcesPath, 'icons', iconName);
     }
-    return path.join(app.getAppPath(), 'assets', 'icons', 'iconTemplate.png');
+    return path.join(app.getAppPath(), 'assets', 'icons', iconName);
   }
 
   private createWindow(): BrowserWindow {
     const savedSize = this.loadWindowSize();
+
+    const isMac = process.platform === 'darwin';
 
     const window = new BrowserWindow({
       width: savedSize.width,
@@ -67,9 +72,10 @@ export class TrayManager {
       movable: false,
       alwaysOnTop: true,
       skipTaskbar: true,
-      vibrancy: 'menu',
-      visualEffectState: 'active',
-      transparent: true,
+      ...(isMac
+        ? { vibrancy: 'menu' as const, visualEffectState: 'active' as const, transparent: true }
+        : { backgroundMaterial: 'acrylic' as const }
+      ),
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
@@ -152,8 +158,15 @@ export class TrayManager {
 
     // Center horizontally under tray icon
     let x = Math.round(trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2);
-    // Position just below tray
-    let y = Math.round(trayBounds.y + trayBounds.height);
+
+    let y: number;
+    if (process.platform === 'darwin') {
+      // macOS: taskbar at top, position below tray
+      y = Math.round(trayBounds.y + trayBounds.height);
+    } else {
+      // Windows/Linux: taskbar at bottom, position above tray
+      y = Math.round(trayBounds.y - windowBounds.height);
+    }
 
     // Clamp to display bounds
     x = Math.max(workArea.x, Math.min(x, workArea.x + workArea.width - windowBounds.width));

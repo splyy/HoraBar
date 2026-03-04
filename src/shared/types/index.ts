@@ -110,4 +110,5 @@ export interface KronoBarAPI {
   shell: {
     openExternal(url: string): Promise<void>;
   };
+  platform: NodeJS.Platform;
 }

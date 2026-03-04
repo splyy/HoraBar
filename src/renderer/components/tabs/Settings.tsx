@@ -19,6 +19,8 @@ const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'
 
 type SubView = 'main' | 'clients' | 'projects';
 
+const isMac = window.kronobar.platform === 'darwin';
+
 export function Settings() {
   const [subView, setSubView] = useState<SubView>('main');
   const { settings, updateSetting } = useSettings();
@@ -151,7 +153,7 @@ export function Settings() {
         <div className={styles.settingRow}>
           <div>
             <div className={styles.settingLabel}>Lancer au démarrage</div>
-            <div className={styles.settingDesc}>Ouvrir KronoBar au login macOS</div>
+            <div className={styles.settingDesc}>Ouvrir KronoBar au démarrage du système</div>
           </div>
           <button
             className={`${styles.toggle} ${settings.launch_at_login ? styles.toggleOn : ''}`}
@@ -167,7 +169,7 @@ export function Settings() {
             <div className={styles.settingDesc}>Ouvrir/fermer le popup</div>
           </div>
           <div className={styles.segmented} style={{ background: 'var(--bg-secondary)' }}>
-            <span className={styles.shortcutDisplay}>⌘ + Shift + T</span>
+            <span className={styles.shortcutDisplay}>{isMac ? '⌘' : 'Ctrl'} + Shift + T</span>
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import type { ForgeConfig } from '@electron-forge/shared-types';
+import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
@@ -9,9 +10,11 @@ import fs from 'fs';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    extendInfo: {
-      LSUIElement: true,
-    },
+    ...(process.platform === 'darwin' ? {
+      extendInfo: {
+        LSUIElement: true,
+      },
+    } : {}),
     icon: 'assets/icons/icon',
     extraResource: [
       'node_modules/sql.js/dist/sql-wasm.wasm',
@@ -47,7 +50,10 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    new MakerZIP({}, ['darwin']),
+    new MakerZIP({}, ['darwin', 'win32']),
+    new MakerSquirrel({
+      setupIcon: 'assets/icons/icon.ico',
+    }),
   ],
   plugins: [
     new VitePlugin({

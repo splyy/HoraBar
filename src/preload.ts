@@ -35,6 +35,7 @@ const api: KronoBarAPI = {
   shell: {
     openExternal: (url) => ipcRenderer.invoke(IPC.OPEN_EXTERNAL, url),
   },
+  platform: process.platform,
 };
 
 contextBridge.exposeInMainWorld('kronobar', api);
