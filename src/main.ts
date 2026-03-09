@@ -3,6 +3,12 @@ import { TrayManager } from './main/tray';
 import { registerIpcHandlers } from './main/ipc/handlers';
 import { initDatabase, closeDatabase } from './main/database/connection';
 import { syncLoginItemSetting } from './main/services/settings';
+import { handleSquirrelEvents } from './main/squirrel';
+
+// Windows: handle Squirrel install/update/uninstall events
+if (handleSquirrelEvents()) {
+  process.exit(0);
+}
 
 // Hide dock icon (macOS only — menu bar app)
 if (process.platform === 'darwin') {
@@ -32,6 +38,15 @@ app.whenReady().then(async () => {
       trayManager?.toggleWindow();
     });
     console.log('[KronoBar] Global shortcut registered');
+
+    // Auto-update (only in packaged app)
+    if (app.isPackaged) {
+      const { updateElectronApp } = await import('update-electron-app');
+      updateElectronApp({
+        updateInterval: '1 hour',
+      });
+      console.log('[KronoBar] Auto-updater initialized');
+    }
   } catch (err) {
     console.error('[KronoBar] Fatal startup error:', err);
   }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from 'electron';
+import { app, BrowserWindow, Menu, nativeImage, nativeTheme, screen, Tray } from 'electron';
 import path from 'path';
 import fs from 'fs';
 
@@ -36,15 +36,47 @@ export class TrayManager {
   }
 
   private createTray(): Tray {
-    const iconPath = this.getIconPath();
-    let icon = nativeImage.createFromPath(iconPath);
-    // Windows tray icons should be 16x16
-    if (process.platform === 'win32') {
-      icon = icon.resize({ width: 16, height: 16 });
-    }
+    const icon = this.buildTrayIcon();
     const tray = new Tray(icon);
     tray.setToolTip('KronoBar');
+
+    // On Windows, update the icon when the system theme changes
+    if (process.platform === 'win32') {
+      nativeTheme.on('updated', () => {
+        tray.setImage(this.buildTrayIcon());
+      });
+    }
+
     return tray;
+  }
+
+  private buildTrayIcon(): nativeImage {
+    const iconPath = this.getIconPath();
+    let icon = nativeImage.createFromPath(iconPath);
+
+    if (process.platform === 'win32') {
+      // Invert icon colors for dark taskbars so the icon stays visible
+      if (nativeTheme.shouldUseDarkColors) {
+        icon = this.invertIcon(icon);
+      }
+      icon = icon.resize({ width: 16, height: 16 });
+    }
+
+    return icon;
+  }
+
+  /** Invert RGB channels of a nativeImage (keeps alpha intact). */
+  private invertIcon(image: nativeImage): nativeImage {
+    const size = image.getSize();
+    const buffer = image.toBitmap();
+    // Bitmap is BGRA format, 4 bytes per pixel
+    for (let i = 0; i < buffer.length; i += 4) {
+      buffer[i] = 255 - buffer[i];       // B
+      buffer[i + 1] = 255 - buffer[i + 1]; // G
+      buffer[i + 2] = 255 - buffer[i + 2]; // R
+      // buffer[i + 3] = alpha, unchanged
+    }
+    return nativeImage.createFromBitmap(buffer, size);
   }
 
   private getIconPath(): string {
