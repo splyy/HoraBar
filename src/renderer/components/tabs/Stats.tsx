@@ -83,17 +83,15 @@ export function Stats() {
   const maxClientMinutes = Math.max(...clientStats.map((c) => c.totalMinutes), 1);
   const totalProjects = stats.length;
 
-  // Weighted average TJM
-  const weightedTjm = useMemo(() => {
-    let totalWeightedRate = 0;
-    let totalWeight = 0;
+  // Total monthly revenue: sum of (days worked × daily_rate) per client
+  const totalRevenue = useMemo(() => {
+    let total = 0;
     for (const cs of clientStats) {
-      if (cs.dailyRate != null) {
-        totalWeightedRate += cs.dailyRate * cs.totalMinutes;
-        totalWeight += cs.totalMinutes;
+      if (cs.revenue != null) {
+        total += cs.revenue;
       }
     }
-    return totalWeight > 0 ? totalWeightedRate / totalWeight : 0;
+    return total;
   }, [clientStats]);
 
   const handleExport = async () => {
@@ -149,11 +147,11 @@ export function Stats() {
           <div className={styles.kpiSub}>base {settings.hours_per_day}h/jour</div>
         </div>
         <div className={styles.kpiCard}>
-          <div className={styles.kpiLabel}>TJM moyen</div>
+          <div className={styles.kpiLabel}>Revenu du mois</div>
           <div className={styles.kpiValue} style={{ color: 'var(--blue-color)' }}>
-            {weightedTjm > 0 ? `${Math.round(weightedTjm)}${currencySymbol}` : '—'}
+            {totalRevenue > 0 ? `${Math.round(totalRevenue)}${currencySymbol}` : '—'}
           </div>
-          <div className={styles.kpiSub}>pondéré par client</div>
+          <div className={styles.kpiSub}>basé sur les TJM</div>
         </div>
         <div className={styles.kpiCard}>
           <div className={styles.kpiLabel}>Clients / Projets</div>
