@@ -34,7 +34,7 @@ app.whenReady().then(async () => {
     console.log('[KronoBar] Login item synced');
     trayManager = TrayManager.getInstance();
     console.log('[KronoBar] Tray created');
-    globalShortcut.register('CommandOrControl+Shift+T', () => {
+    globalShortcut.register('CommandOrControl+Shift+K', () => {
       trayManager?.toggleWindow();
     });
     console.log('[KronoBar] Global shortcut registered');

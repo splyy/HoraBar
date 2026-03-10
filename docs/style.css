@@ -596,6 +596,12 @@ h1 .sub {
   transition:gap .2s;
 }
 .dl-card:hover .dl-link-txt { gap:12px; }
+.dl-hint {
+  font-size:10px; color:var(--text3); line-height:1.5;
+  border-top:1px solid var(--border);
+  padding-top:10px; margin-top:2px;
+  font-family:'IBM Plex Sans',sans-serif;
+}
 
 /* ═══════════════════════════════════════
    LIGHTBOX
