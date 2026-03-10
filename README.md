@@ -31,7 +31,7 @@ https://github.com/user-attachments/assets/13161de8-df31-4d25-b885-219cbc227b1a
 - **History** — Browse past entries by day, week, month, or year
 - **Statistics** — Time totals, revenue, and breakdown by client
 - **CSV export** — Export your tracking data for invoicing
-- **Global shortcut** — Toggle the window with `Cmd + Shift + T` (macOS) or `Ctrl + Shift + T` (Windows)
+- **Global shortcut** — Toggle the window with `Cmd + Shift + K` (macOS) or `Ctrl + Shift + K` (Windows)
 - **Launch at login** — Start automatically with your OS
 - **Auto-update** — The app checks for updates automatically (Windows)
 - **Local data** — Everything stays on your machine (SQLite)
