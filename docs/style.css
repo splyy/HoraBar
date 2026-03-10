@@ -555,7 +555,8 @@ h1 .sub {
 .dl-card-top {
   display:flex; align-items:center; justify-content:space-between;
 }
-.dl-os-name { font-size:16px; font-weight:600; display:flex; align-items:center; gap:10px; }
+.dl-os-name { font-size:16px; font-weight:600; display:flex; align-items:center; gap:10px; color:var(--text); }
+.dl-os-name svg { color:var(--accent); }
 .dl-badge {
   font-size:9px; letter-spacing:.15em; text-transform:uppercase;
   background:var(--accent-s); border:1px solid var(--border2);
