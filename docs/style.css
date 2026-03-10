@@ -278,11 +278,6 @@ h1 .sub {
   width:300px;
   flex-shrink:0;
 }
-.phone-notch {
-  position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  width:88px; height:24px; background:#090909;
-  border-radius:0 0 14px 14px; z-index:10;
-}
 .phone-frame img {
   width:100%; display:block;
   transition:opacity .32s ease;
@@ -296,7 +291,7 @@ h1 .sub {
   background:var(--bg2);
 }
 .snav-btn {
-  flex:1; padding:12px 6px;
+  flex:1; padding:16px 10px;
   background:none; border:none; border-right:1px solid var(--border2);
   font-family:'IBM Plex Mono',monospace; font-size:9px;
   letter-spacing:.12em; text-transform:uppercase;
@@ -409,11 +404,6 @@ h1 .sub {
           inset 0 1px 0 rgba(255,255,255,.05);
   overflow:hidden;
   width:280px;
-}
-.sc-phone-notch {
-  position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  width:82px; height:24px; background:#090909;
-  border-radius:0 0 14px 14px; z-index:10;
 }
 .sc-phone img { width:100%; display:block; }
 
@@ -684,10 +674,13 @@ h1 .sub {
 
 /* Response */
 @media (max-width:1024px) {
-  .hero { grid-template-columns:1fr; }
+  .hero { grid-template-columns:1fr; min-height:auto; }
+  .hero-l { gap:40px; }
   .hero-r { min-height:480px; border-top:1px solid var(--border); }
   .showcase { grid-template-columns:1fr; }
   .showcase.flip { direction:ltr; }
+  .showcase.flip .sc-phone-wrap { order:2; }
+  .showcase.flip .sc-text { order:1; }
   .sc-phone-wrap { min-height:400px; border-top:1px solid var(--border); }
   .sc-text { border-right:none; }
   .showcase.flip .sc-text { border-left:none; }
@@ -700,6 +693,8 @@ h1 .sub {
   .feats-grid { grid-template-columns:1fr 1fr; }
   .feat-card:nth-child(3) { border-right:1px solid var(--border); }
   .feat-card:nth-child(2), .feat-card:nth-child(4) { border-right:none; }
+  .features-header { flex-wrap:wrap; }
+  .fh-num, .fh-title { font-size:28px; }
   .nav { padding:0 20px; }
   .nav-links { display:none; }
   .hero-l, .sc-text, .dl-intro, .dl-platforms, .features-header, .gallery-section, .footer { padding-left:24px; padding-right:24px; }
