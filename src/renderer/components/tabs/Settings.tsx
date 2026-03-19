@@ -139,6 +139,24 @@ export function Settings({ updateResult, onCheckUpdate }: SettingsProps) {
           </div>
         </div>
 
+        <div className={styles.settingRow}>
+          <div>
+            <div className={styles.settingLabel}>Taux de charges</div>
+            <div className={styles.settingDesc}>Appliqué au brut pour estimer le net</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <input
+              type="number"
+              className={styles.numInput}
+              value={settings.charge_rate}
+              min={0}
+              max={100}
+              onChange={(e) => updateSetting('charge_rate', parseInt(e.target.value) || 0)}
+            />
+            <span className={styles.settingUnit}>%</span>
+          </div>
+        </div>
+
         {/* CLIENTS & PROJETS */}
         <div className={styles.sectionLabel}>Clients &amp; projets</div>
 

@@ -166,6 +166,15 @@
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.clientBarRevenue {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Export */
 .statsExport {
   padding: 6px 16px 16px;

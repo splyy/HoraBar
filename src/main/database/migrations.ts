@@ -67,6 +67,12 @@ const migrations: Migration[] = [
       `CREATE INDEX IF NOT EXISTS idx_tracking_project ON tracking(project_id)`,
     ],
   },
+  {
+    version: 4,
+    sql: [
+      `INSERT OR IGNORE INTO settings (key, value) VALUES ('charge_rate', '0')`,
+    ],
+  },
 ];
 
 export function runMigrations(db: Database): void {

@@ -62,6 +62,7 @@ export interface Settings {
   time_format: 'hhmm' | 'decimal';
   hours_per_day: number;
   currency: string;
+  charge_rate: number;
   launch_at_login: boolean;
 }
 

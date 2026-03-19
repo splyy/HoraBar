@@ -6,6 +6,7 @@ const defaultSettings: Settings = {
   time_format: 'hhmm',
   hours_per_day: 7,
   currency: 'EUR',
+  charge_rate: 0,
   launch_at_login: false,
 };
 

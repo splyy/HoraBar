@@ -81,7 +81,6 @@ export function Stats() {
 
   const totalMinutes = clientStats.reduce((sum, c) => sum + c.totalMinutes, 0);
   const maxClientMinutes = Math.max(...clientStats.map((c) => c.totalMinutes), 1);
-  const totalProjects = stats.length;
 
   // Total monthly revenue: sum of (days worked × daily_rate) per client
   const totalRevenue = useMemo(() => {
@@ -147,18 +146,22 @@ export function Stats() {
           <div className={styles.kpiSub}>base {settings.hours_per_day}h/jour</div>
         </div>
         <div className={styles.kpiCard}>
-          <div className={styles.kpiLabel}>Revenu du mois</div>
+          <div className={styles.kpiLabel}>Revenu brut du mois</div>
           <div className={styles.kpiValue} style={{ color: 'var(--blue-color)' }}>
             {totalRevenue > 0 ? `${Math.round(totalRevenue)}${currencySymbol}` : '—'}
           </div>
           <div className={styles.kpiSub}>basé sur les TJM</div>
         </div>
         <div className={styles.kpiCard}>
-          <div className={styles.kpiLabel}>Clients / Projets</div>
+          <div className={styles.kpiLabel}>Revenu net du mois</div>
           <div className={styles.kpiValue} style={{ color: 'var(--purple-color)' }}>
-            {clientStats.length} / {totalProjects}
+            {totalRevenue > 0 && settings.charge_rate > 0
+              ? `${Math.round(totalRevenue * (1 - settings.charge_rate / 100))}${currencySymbol}`
+              : '—'}
           </div>
-          <div className={styles.kpiSub}>actifs ce mois</div>
+          <div className={styles.kpiSub}>
+            {settings.charge_rate > 0 ? `après ${settings.charge_rate}% de charges` : 'configurer le taux dans Réglages'}
+          </div>
         </div>
       </div>
 
@@ -189,6 +192,17 @@ export function Stats() {
                     }}
                   />
                 </div>
+                {cs.dailyRate != null && (
+                  <div className={styles.clientBarRevenue}>
+                    <span>TJM : {cs.dailyRate}{currencySymbol}</span>
+                    {cs.revenue != null && (
+                      <span>Brut : {Math.round(cs.revenue)}{currencySymbol}</span>
+                    )}
+                    {cs.revenue != null && settings.charge_rate > 0 && (
+                      <span>Net : {Math.round(cs.revenue * (1 - settings.charge_rate / 100))}{currencySymbol}</span>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
